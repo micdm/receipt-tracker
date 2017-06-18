@@ -1,0 +1,4 @@
+.idea/
+.virtualenv/
+data/
+settings_local.py

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Чек добавлен{% endblock %}
+
+{% block body %}
+<p>Чек добавлен.</p>
+<table>
+    {% for item in receipt.receiptitem_set.all %}
+    <tr>
+        <td>{{ item.product.name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.price }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<p><a href="{% url 'index' %}">Вернуться на главную</a> или <a href="{% url 'add_receipt' %}">добавить ещё один чек</a>.</p>
+{% endblock %}
