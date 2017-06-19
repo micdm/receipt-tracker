@@ -3,15 +3,17 @@
 {% block title %}Привет{% endblock %}
 
 {% block body %}
-<p>Тут какбе добро пожаловать. <a href="{% url 'add_receipt' %}">Добавить чек.</a></p>
-<h2>Последнее добавленное</h2>
-<table>
-    {% for item in receipt_items %}
-    <tr>
-        <td>{{ item.receipt.seller.name }}</td>
-        <td>{{ item.product.name }}</td>
-        <td>{{ item.price }}</td>
-    </tr>
-    {% endfor %}
-</table>
+<p>Тут какбе добро пожаловать.{% if not user.is_anonymous %} <a href="{% url 'add_receipt' %}">Добавить чек.</a>{% endif %}</p>
+{% if receipt_items %}
+    <h2>Последнее добавленное</h2>
+    <table>
+        {% for item in receipt_items %}
+        <tr>
+            <td>{{ item.receipt.seller.name }}</td>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
 {% endblock %}

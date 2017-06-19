@@ -4,8 +4,8 @@ from http import HTTPStatus
 import re
 import subprocess
 import time
-from uuid import uuid4
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
@@ -19,6 +19,7 @@ def index(request):
     return render(request, 'index.html', {'receipt_items': receipt_items})
 
 
+@login_required
 def add_receipt(request):
     if request.method == 'POST' and 'manual' in request.POST:
         manual_input_form = forms.ManualInputForm(request.POST)
@@ -27,7 +28,7 @@ def add_receipt(request):
                 data = _get_receipt_json(manual_input_form.cleaned_data['fiscal_drive_number'],
                                          manual_input_form.cleaned_data['fiscal_document_number'],
                                          manual_input_form.cleaned_data['fiscal_sign'])
-                receipt = _save_receipt(data['document']['receipt'])
+                receipt = _save_receipt(data['document']['receipt'], request.user)
                 return HttpResponseRedirect(reverse('receipt_added', kwargs={
                     'fiscal_drive_number': receipt.fiscal_drive_number,
                     'fiscal_document_number': receipt.fiscal_document_number,
@@ -43,7 +44,7 @@ def add_receipt(request):
             try:
                 params = _get_receipt_params_from_photo(photo_form.cleaned_data['photo'])
                 data = _get_receipt_json(*params)
-                receipt = _save_receipt(data['document']['receipt'])
+                receipt = _save_receipt(data['document']['receipt'], request.user)
                 return HttpResponseRedirect(reverse('receipt_added', kwargs={
                     'fiscal_drive_number': receipt.fiscal_drive_number,
                     'fiscal_document_number': receipt.fiscal_document_number,
@@ -80,13 +81,13 @@ def _get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign):
     return response.json()
 
 
-def _save_receipt(data):
+def _save_receipt(data, user):
     if Receipt.objects.filter(fiscal_drive_number=data['fiscalDriveNumber'], fiscal_document_number=data['fiscalDocumentNumber'],
                               fiscal_sign=data['fiscalSign']).exists():
         raise Exception('чек уже добавлен')
     with transaction.atomic():
         seller = Seller.objects.get_or_create(individual_number=data['userInn'], defaults={'name': data['user']})[0]
-        receipt = Receipt.objects.create(seller=seller, buyer=uuid4(),
+        receipt = Receipt.objects.create(seller=seller, buyer=user,
                                          created=datetime.strptime(data['dateTime'], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone(timedelta(hours=4))).astimezone(timezone.utc),
                                          fiscal_drive_number=data['fiscalDriveNumber'], fiscal_document_number=data['fiscalDocumentNumber'],
                                          fiscal_sign=data['fiscalSign'])
@@ -97,6 +98,7 @@ def _save_receipt(data):
     return receipt
 
 
+@login_required
 def receipt_added(request, fiscal_drive_number, fiscal_document_number, fiscal_sign):
     receipt = Receipt.objects.filter(fiscal_drive_number=fiscal_drive_number, fiscal_document_number=fiscal_document_number,
                                      fiscal_sign=fiscal_sign).first()

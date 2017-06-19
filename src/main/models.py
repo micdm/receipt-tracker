@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 
 
@@ -29,7 +30,7 @@ class Receipt(models.Model):
         unique_together = ('fiscal_drive_number', 'fiscal_document_number', 'fiscal_sign')
 
     seller = models.ForeignKey(Seller)
-    buyer = models.UUIDField()
+    buyer = models.ForeignKey(get_user_model())
     created = models.DateTimeField()
     fiscal_drive_number = models.BigIntegerField()
     fiscal_document_number = models.BigIntegerField()

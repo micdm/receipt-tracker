@@ -5,6 +5,13 @@
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
+    <p>
+        {% if user.is_anonymous %}
+        <a href="{% url 'social:begin' 'vk-oauth2' %}">Войти через VK</a>
+        {% else %}
+        Привет, {{ user }}! <a href="{% url 'logout' %}">Выйти</a>
+        {% endif %}
+    </p>
     {% block body %}{% endblock %}
 </body>
 </html>
