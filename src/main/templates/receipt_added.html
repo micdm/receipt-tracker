@@ -3,8 +3,8 @@
 {% block title %}Чек добавлен{% endblock %}
 
 {% block body %}
-<p>Чек добавлен.</p>
-<table>
+<p class="text-success">Чек добавлен.</p>
+<table class="table">
     {% for item in receipt.receiptitem_set.all %}
     <tr>
         <td>{{ item.product.name }}</td>
@@ -13,5 +13,5 @@
     </tr>
     {% endfor %}
 </table>
-<p><a href="{% url 'index' %}">Вернуться на главную</a> или <a href="{% url 'add_receipt' %}">добавить ещё один чек</a>.</p>
+<p><a href="{% url 'add_receipt' %}" class="btn btn-primary">Добавить ещё один чек</a></p>
 {% endblock %}

@@ -2,16 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"/>
 </head>
 <body>
-    <p>
-        {% if user.is_anonymous %}
-        <a href="{% url 'social:begin' 'vk-oauth2' %}">Войти через VK</a>
-        {% else %}
-        Привет, {{ user }}! <a href="{% url 'logout' %}">Выйти</a>
-        {% endif %}
-    </p>
+    <div class="container" style="padding: 20px 0">
+        <div class="col-md-2">
+            <a href="{% url 'index' %}" class="btn btn-link">На главную</a>
+        </div>
+        <div class="col-md-10 text-right">
+            {% if user.is_anonymous %}
+            <a href="{% url 'social:begin' 'vk-oauth2' %}" class="btn btn-primary">Войти через VK</a>
+            {% else %}
+            Привет, <strong>{{ user }}</strong>
+            <a href="{% url 'add_receipt' %}" class="btn btn-primary">Добавить чек</a>
+            <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container">
     {% block body %}{% endblock %}
+    </div>
 </body>
 </html>

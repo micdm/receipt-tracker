@@ -3,10 +3,10 @@
 {% block title %}Привет{% endblock %}
 
 {% block body %}
-<p>Тут какбе добро пожаловать.{% if not user.is_anonymous %} <a href="{% url 'add_receipt' %}">Добавить чек.</a>{% endif %}</p>
+<p>Тут какбе добро пожаловать.</p>
 {% if receipt_items %}
     <h2>Последнее добавленное</h2>
-    <table>
+    <table class="table">
         {% for item in receipt_items %}
         <tr>
             <td>{{ item.receipt.seller.name }}</td>
