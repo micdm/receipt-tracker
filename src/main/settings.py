@@ -136,4 +136,8 @@ SOCIAL_AUTH_VK_OAUTH2_KEY = None
 SOCIAL_AUTH_VK_OAUTH2_SECRET = None
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 
+FILE_UPLOAD_HANDLERS = (
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+)
+
 from .settings_local import *
