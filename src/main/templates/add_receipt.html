@@ -10,7 +10,7 @@
     <input type="hidden" name="manual" value="1"/>
     <input type="submit" value="Добавить" class="btn btn-primary"/>
 </form>
-<h2>...или картинкой:</h2>
+<h2>...или картинкой (но это ненадёжно):</h2>
 <form action="{% url 'add_receipt' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ photo_form.as_p }}

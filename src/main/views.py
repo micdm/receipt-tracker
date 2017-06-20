@@ -92,7 +92,16 @@ def _save_receipt(data, user):
                                          fiscal_drive_number=data['fiscalDriveNumber'], fiscal_document_number=data['fiscalDocumentNumber'],
                                          fiscal_sign=data['fiscalSign'])
         for item in data['items']:
-            product = Product.objects.get_or_create(seller=seller, name=item['name'], defaults={'barcode': item.get('barcode')})[0]
+            if 'barcode' in item:
+                product = Product.objects.get_or_create(barcode=item['barcode'])[0]
+                ProductAlias.objects.get_or_create(seller=seller, product=product, name=item['name'])
+            else:
+                product_alias = ProductAlias.objects.filter(seller=seller, name=item['name']).first()
+                if product_alias:
+                    product = product_alias.product
+                else:
+                    product = Product.objects.create()
+                    ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
             ReceiptItem.objects.create(receipt=receipt, product=product, price=decimal.Decimal(item['price'] / 100),
                                        quantity=decimal.Decimal(item['quantity']), total=decimal.Decimal(item['sum'] / 100))
     return receipt

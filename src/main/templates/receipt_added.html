@@ -7,7 +7,7 @@
 <table class="table">
     {% for item in receipt.receiptitem_set.all %}
     <tr>
-        <td>{{ item.product.name }}</td>
+        <td>{{ item.product }}</td>
         <td>{{ item.quantity }}</td>
         <td>{{ item.price }}</td>
     </tr>

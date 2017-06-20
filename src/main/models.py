@@ -13,12 +13,17 @@ class Seller(models.Model):
 
 class Product(models.Model):
 
-    class Meta:
-        unique_together = ('seller', 'name')
+    barcode = models.PositiveIntegerField(null=True)
+
+    def __str__(self):
+        return str(self.productalias_set.all()[0])
+
+
+class ProductAlias(models.Model):
 
     seller = models.ForeignKey(Seller)
+    product = models.ForeignKey(Product)
     name = models.CharField(max_length=100)
-    barcode = models.PositiveIntegerField(null=True)
 
     def __str__(self):
         return self.name

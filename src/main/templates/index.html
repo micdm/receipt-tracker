@@ -10,7 +10,7 @@
         {% for item in receipt_items %}
         <tr>
             <td>{{ item.receipt.seller.name }}</td>
-            <td>{{ item.product.name }}</td>
+            <td>{{ item.product }}</td>
             <td>{{ item.price }}</td>
         </tr>
         {% endfor %}
