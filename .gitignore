@@ -1,5 +1,8 @@
 __pycache__
 .idea/
 .virtualenv/
+conf/
 data/
+run/
+static/
 settings_local.py
