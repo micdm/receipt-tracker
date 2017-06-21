@@ -3,7 +3,14 @@
 {% block title %}Добавить чек{% endblock %}
 
 {% block body %}
-<h2>Добавить вручную:</h2>
+<h2>Добавить расшифрованный QR-код:</h2>
+<form action="{% url 'add_receipt' %}" method="post">
+    {% csrf_token %}
+    {{ qr_form.as_p }}
+    <input type="hidden" name="qr" value="1"/>
+    <input type="submit" value="Добавить" class="btn btn-primary"/>
+</form>
+<h2>...или добавить вручную:</h2>
 <form action="{% url 'add_receipt' %}" method="post">
     {% csrf_token %}
     {{ manual_input_form.as_p }}

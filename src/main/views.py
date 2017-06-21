@@ -21,6 +21,22 @@ def index(request):
 
 @login_required
 def add_receipt(request):
+    if request.method == 'POST' and 'qr' in request.POST:
+        qr_form = forms.QrForm(request.POST)
+        if qr_form.is_valid():
+            try:
+                params = _get_receipt_params_from_qr(qr_form.cleaned_data['text'])
+                data = _get_receipt_json(*params)
+                receipt = _save_receipt(data['document']['receipt'], request.user)
+                return HttpResponseRedirect(reverse('receipt_added', kwargs={
+                    'fiscal_drive_number': receipt.fiscal_drive_number,
+                    'fiscal_document_number': receipt.fiscal_document_number,
+                    'fiscal_sign': receipt.fiscal_sign
+                }))
+            except Exception as e:
+                qr_form.add_error(None, 'Не удалось добавить чек: %s' % e)
+    else:
+        qr_form = forms.QrForm()
     if request.method == 'POST' and 'manual' in request.POST:
         manual_input_form = forms.ManualInputForm(request.POST)
         if manual_input_form.is_valid():
@@ -54,14 +70,25 @@ def add_receipt(request):
                 photo_form.add_error(None, 'Не удалось добавить чек: %s' % e)
     else:
         photo_form = forms.PhotoForm()
-    return render(request, 'add_receipt.html', {'manual_input_form': manual_input_form, 'photo_form': photo_form})
+    return render(request, 'add_receipt.html', {
+        'qr_form': qr_form,
+        'manual_input_form': manual_input_form,
+        'photo_form': photo_form
+    })
+
+
+def _get_receipt_params_from_qr(text):
+    try:
+        return tuple(re.search(pattern, text).group(1) for pattern in (r'fn=(\d+)', r'i=(\d+)', r'fp=(\d+)'))
+    except Exception:
+        raise Exception('не удалось разобрать QR-текст')
 
 
 def _get_receipt_params_from_photo(photo):
     try:
         output = subprocess.run(('zbarimg', '-q', '--raw', photo.temporary_file_path()), stdout=subprocess.PIPE,
                                 check=True).stdout.decode('utf-8')
-        return tuple(re.search(pattern, output).group(1) for pattern in (r'fn=(\d+)', r'i=(\d+)', r'fp=(\d+)'))
+        return _get_receipt_params_from_qr(output)
     except Exception as e:
         raise Exception('не удалось распознать QR-код на фотографии: %s' % e)
 

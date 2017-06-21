@@ -1,6 +1,11 @@
 from django import forms
 
 
+class QrForm(forms.Form):
+
+    text = forms.CharField(label='Текст')
+
+
 class ManualInputForm(forms.Form):
 
     fiscal_drive_number = forms.IntegerField(label='ФН')
