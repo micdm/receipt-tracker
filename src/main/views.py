@@ -10,8 +10,12 @@ from django.db import transaction
 from django.shortcuts import render, reverse, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 import requests
+from logging import getLogger
 from main.models import *
 from main import forms
+
+
+logger = getLogger(__name__)
 
 
 def index(request):
@@ -34,6 +38,7 @@ def add_receipt(request):
                     'fiscal_sign': receipt.fiscal_sign
                 }))
             except Exception as e:
+                logger.debug('Cannot add receipt: %s', e)
                 qr_form.add_error(None, 'Не удалось добавить чек: %s' % e)
     else:
         qr_form = forms.QrForm()
@@ -51,6 +56,7 @@ def add_receipt(request):
                     'fiscal_sign': receipt.fiscal_sign
                 }))
             except Exception as e:
+                logger.debug('Cannot add receipt: %s', e)
                 manual_input_form.add_error(None, 'Не удалось добавить чек: %s' % e)
     else:
         manual_input_form = forms.ManualInputForm()
@@ -67,6 +73,7 @@ def add_receipt(request):
                     'fiscal_sign': receipt.fiscal_sign
                 }))
             except Exception as e:
+                logger.debug('Cannot add receipt: %s', e)
                 photo_form.add_error(None, 'Не удалось добавить чек: %s' % e)
     else:
         photo_form = forms.PhotoForm()
@@ -105,7 +112,9 @@ def _get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign):
         return _get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign)
     if response.status_code != HTTPStatus.OK:
         raise Exception('код ответа сервера %s' % response.status_code)
-    return response.json()
+    result = response.json()
+    logger.debug('Receipt JSON is %s', result)
+    return result
 
 
 def _save_receipt(data, user):
