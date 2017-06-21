@@ -3,13 +3,13 @@
 {% block title %}Продукт "{{ product_alias }}"{% endblock %}
 
 {% block body %}
-<h1>{{ product_alias }}</h1>
+<h1>{{ product_alias }}<br/><small>{{ product_alias.seller.name }}</small></h1>
 <h2>Цены</h2>
 <table class="table">
     {% for receipt_item in product_alias.receiptitem_set.all %}
     <tr>
-        <td>{{ receipt_item.receipt.created }}</td>
-        <td>{{ receipt_item.price }}</td>
+        <td>{{ receipt_item.receipt.created|date:'Y-m-d H:i:s' }}</td>
+        <td class="text-right">{{ receipt_item.price }}</td>
     </tr>
     {% endfor %}
 </table>

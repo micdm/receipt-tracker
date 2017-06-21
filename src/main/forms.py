@@ -3,7 +3,7 @@ from django import forms
 
 class QrForm(forms.Form):
 
-    text = forms.CharField(label='Текст')
+    text = forms.CharField(label='Текст', widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
 
 class ManualInputForm(forms.Form):

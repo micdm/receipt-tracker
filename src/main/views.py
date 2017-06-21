@@ -111,7 +111,7 @@ def _get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign):
         time.sleep(3)
         return _get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign)
     if response.status_code != HTTPStatus.OK:
-        raise Exception('код ответа сервера %s' % response.status_code)
+        raise Exception('ответ сервера был %s (%s)' % (response.status_code, response.content.decode('utf-8')))
     result = response.json()
     logger.debug('Receipt JSON is %s', result)
     return result

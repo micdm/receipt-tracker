@@ -3,7 +3,6 @@
 {% block title %}Стартовое{% endblock %}
 
 {% block body %}
-<p>Тут какбе добро пожаловать.</p>
 {% if receipt_items %}
     <h2>Последнее добавленное</h2>
     <table class="table">
@@ -11,7 +10,7 @@
         <tr>
             <td>{{ item.receipt.seller.name }}</td>
             <td><a href="{% url 'product' item.product_alias.id %}">{{ item.product_alias }}</a></td>
-            <td>{{ item.price }}</td>
+            <td class="text-right">{{ item.price }}</td>
         </tr>
         {% endfor %}
     </table>
