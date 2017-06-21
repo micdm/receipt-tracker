@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Продукт "{{ product_alias }}"{% endblock %}
+
+{% block body %}
+<h1>{{ product_alias }}</h1>
+<h2>Цены</h2>
+<table class="table">
+    {% for receipt_item in product_alias.receiptitem_set.all %}
+    <tr>
+        <td>{{ receipt_item.receipt.created }}</td>
+        <td>{{ receipt_item.price }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

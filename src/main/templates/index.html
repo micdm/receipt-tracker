@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Привет{% endblock %}
+{% block title %}Стартовое{% endblock %}
 
 {% block body %}
 <p>Тут какбе добро пожаловать.</p>
@@ -10,7 +10,7 @@
         {% for item in receipt_items %}
         <tr>
             <td>{{ item.receipt.seller.name }}</td>
-            <td>{{ item.product }}</td>
+            <td><a href="{% url 'product' item.product_alias.id %}">{{ item.product_alias }}</a></td>
             <td>{{ item.price }}</td>
         </tr>
         {% endfor %}

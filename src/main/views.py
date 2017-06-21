@@ -7,7 +7,7 @@ import time
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.shortcuts import render, reverse
+from django.shortcuts import render, reverse, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponseBadRequest
 import requests
 from main.models import *
@@ -121,15 +121,13 @@ def _save_receipt(data, user):
         for item in data['items']:
             if 'barcode' in item:
                 product = Product.objects.get_or_create(barcode=item['barcode'])[0]
-                ProductAlias.objects.get_or_create(seller=seller, product=product, name=item['name'])
+                product_alias = ProductAlias.objects.get_or_create(seller=seller, product=product, name=item['name'])[0]
             else:
                 product_alias = ProductAlias.objects.filter(seller=seller, name=item['name']).first()
-                if product_alias:
-                    product = product_alias.product
-                else:
+                if not product_alias:
                     product = Product.objects.create()
-                    ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
-            ReceiptItem.objects.create(receipt=receipt, product=product, price=decimal.Decimal(item['price'] / 100),
+                    product_alias = ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
+            ReceiptItem.objects.create(receipt=receipt, product_alias=product_alias, price=decimal.Decimal(item['price'] / 100),
                                        quantity=decimal.Decimal(item['quantity']), total=decimal.Decimal(item['sum'] / 100))
     return receipt
 
@@ -141,3 +139,8 @@ def receipt_added(request, fiscal_drive_number, fiscal_document_number, fiscal_s
     if receipt is None:
         return HttpResponseBadRequest()
     return render(request, 'receipt_added.html', {'receipt': receipt})
+
+
+def product(request, product_alias_id):
+    product_alias = get_object_or_404(ProductAlias, pk=product_alias_id)
+    return render(request, 'product.html', {'product_alias': product_alias})

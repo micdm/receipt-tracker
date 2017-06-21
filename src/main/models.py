@@ -48,10 +48,10 @@ class Receipt(models.Model):
 class ReceiptItem(models.Model):
 
     receipt = models.ForeignKey(Receipt)
-    product = models.ForeignKey(Product)
+    product_alias = models.ForeignKey(ProductAlias)
     price = models.DecimalField(decimal_places=2, max_digits=10)
     quantity = models.DecimalField(decimal_places=3, max_digits=6)
     total = models.DecimalField(decimal_places=2, max_digits=10)
 
     def __str__(self):
-        return '%s x%s по %s' % (self.product, self.quantity, self.price)
+        return '%s x%s по %s' % (self.product_alias, self.quantity, self.price)
