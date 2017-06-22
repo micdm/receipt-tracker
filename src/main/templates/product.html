@@ -1,15 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Продукт "{{ product_alias }}"{% endblock %}
+{% block title %}Продукт{% endblock %}
 
 {% block body %}
-<h1>{{ product_alias }}<br/><small>{{ product_alias.seller.name }}</small></h1>
-<h2>Цены</h2>
+<h2>Известен как</h2>
 <table class="table">
-    {% for receipt_item in product_alias.receiptitem_set.all %}
+    {% for alias in product.aliases %}
     <tr>
-        <td>{{ receipt_item.receipt.created|date:'Y-m-d H:i:s' }}</td>
-        <td class="text-right">{{ receipt_item.price }}</td>
+        <td>{{ alias.seller }}</td>
+        <td class="text-right">{{ alias.name }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<h2>История цен</h2>
+<table class="table">
+    {% for price in product.prices %}
+    <tr>
+        <td>{{ price.seller }}</td>
+        <td>{{ price.created|date:'Y-m-d H:i' }}</td>
+        <td class="text-right">{{ price.value }}</td>
     </tr>
     {% endfor %}
 </table>

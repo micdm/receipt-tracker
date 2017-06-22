@@ -4,10 +4,11 @@
 
 {% block body %}
 <p class="text-success">Чек добавлен.</p>
+<h2>{{ receipt.created|date:'Y-m-d H:i' }}<br/><small>{{ receipt.seller }}</small></h2>
 <table class="table">
-    {% for item in receipt.receiptitem_set.all %}
+    {% for item in receipt.items %}
     <tr>
-        <td>{{ item.product_alias }}</td>
+        <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a></td>
         <td>{{ item.quantity }}</td>
         <td class="text-right">{{ item.price }}</td>
     </tr>
