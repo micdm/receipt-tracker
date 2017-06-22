@@ -25,7 +25,7 @@ logger = getLogger(__name__)
 class IndexView(View):
 
     def get(self, request):
-        receipt_items = ReceiptItem.objects.filter(receipt__seller=2).order_by('-receipt__created')[:50]
+        receipt_items = ReceiptItem.objects.order_by('-receipt__created')[:50]
         return render(request, 'index.html', self._get_context(receipt_items))
 
     def _get_context(self, receipt_items):
