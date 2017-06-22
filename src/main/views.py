@@ -1,24 +1,23 @@
-from datetime import datetime, timezone, timedelta
 import decimal
-from http import HTTPStatus
 import re
 import subprocess
 import time
+from datetime import datetime, timezone, timedelta
+from http import HTTPStatus
+from logging import getLogger
+
+import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
-from django.shortcuts import render, reverse, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponseBadRequest
-import requests
-from logging import getLogger
-
+from django.shortcuts import render, reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from main.models import *
 from main import forms
-
+from main.models import *
 
 logger = getLogger(__name__)
 
@@ -26,7 +25,7 @@ logger = getLogger(__name__)
 class IndexView(View):
 
     def get(self, request):
-        receipt_items = ReceiptItem.objects.order_by('-receipt__created')[:50]
+        receipt_items = ReceiptItem.objects.filter(receipt__seller=2).order_by('-receipt__created')[:50]
         return render(request, 'index.html', self._get_context(receipt_items))
 
     def _get_context(self, receipt_items):
@@ -197,22 +196,63 @@ class ReceiptAddedView(View):
 class ProductView(View):
 
     def get(self, request, product_id):
-        product = Product.objects.get(pk=product_id)
+        product = Product.objects.get(id=product_id)
         if not product:
             return HttpResponseNotFound()
-        return render(request, 'product.html', self._get_context(product))
+        return render(request, 'product.html', self._get_context(product, forms.AddAliasForm(product_id)))
 
-    def _get_context(self, product):
+    def post(self, request, product_id):
+        product = Product.objects.get(id=product_id)
+        if not product:
+            return HttpResponseNotFound()
+        if 'add' in request.POST:
+            add_form = forms.AddAliasForm(product_id, request.POST)
+            if add_form.is_valid():
+                try:
+                    self._add_alias(product_id, add_form.cleaned_data['product_alias'].id)
+                    return HttpResponseRedirect(reverse('product', kwargs={'product_id': product_id}))
+                except Exception as e:
+                    logger.debug('Cannot add alias: %s', e)
+                    add_form.add_error(None, 'Не удалось добавить синоним: %s' % e)
+        else:
+            add_form = forms.AddAliasForm(product_id)
+        if 'remove' in request.POST:
+            remove_form = forms.RemoveAliasForm(request.POST)
+            if remove_form.is_valid():
+                try:
+                    self._remove_alias(remove_form.cleaned_data['product_alias_id'])
+                    return HttpResponseRedirect(reverse('product', kwargs={'product_id': product_id}))
+                except Exception as e:
+                    logger.debug('Cannot remove alias: %s', e)
+        return render(request, 'product.html', self._get_context(product, add_form))
+
+    def _add_alias(self, product_id, alias_id):
+        with transaction.atomic():
+            product_alias = ProductAlias.objects.get(id=alias_id)
+            previous_product = product_alias.product
+            ProductAlias.objects.filter(product=previous_product).update(product=product_id)
+            Product.objects.filter(id=previous_product.id).delete()
+
+    def _remove_alias(self, alias_id):
+        with transaction.atomic():
+            product = Product.objects.create()
+            ProductAlias.objects.filter(id=alias_id).update(product=product)
+
+    def _get_context(self, product, add_alias_form):
         return {
             'product': {
+                'id': product.id,
                 'aliases': [{
+                    'id': alias.id,
                     'seller': alias.seller.get_name(),
-                    'name': alias.name
+                    'name': alias.name,
+                    'remove_form': forms.RemoveAliasForm(initial={'product_alias_id': alias.id}),
                 } for alias in product.productalias_set.all()],
                 'prices': [{
                     'seller': item.receipt.seller.get_name(),
                     'created': item.receipt.created,
                     'value': item.price,
-                } for item in ReceiptItem.objects.filter(product_alias__product=product)]
-            }
+                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')]
+            },
+            'add_alias_form': add_alias_form
         }
