@@ -34,7 +34,7 @@ class IndexView(View):
             'items': [{
                 'product_id': item.product_alias.product.id,
                 'name': item.product_alias.name,
-                'seller': item.receipt.seller.name,
+                'seller': item.receipt.seller.get_name(),
                 'price': item.price
             } for item in receipt_items]
         }
@@ -182,7 +182,7 @@ class ReceiptAddedView(View):
     def _get_context(self, receipt):
         return {
             'receipt': {
-                'seller': receipt.seller.name,
+                'seller': receipt.seller.get_name(),
                 'created': receipt.created,
                 'items': [{
                     'product_id': item.product_alias.product.id,
@@ -206,13 +206,13 @@ class ProductView(View):
         return {
             'product': {
                 'aliases': [{
-                    'seller': alias.seller.name,
+                    'seller': alias.seller.get_name(),
                     'name': alias.name
                 } for alias in product.productalias_set.all()],
                 'prices': [{
-                    'seller': item.receipt.seller.name,
+                    'seller': item.receipt.seller.get_name(),
                     'created': item.receipt.created,
-                    'value': item.price
-                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')]
+                    'value': item.price,
+                } for item in ReceiptItem.objects.filter(product_alias__product=product)]
             }
         }

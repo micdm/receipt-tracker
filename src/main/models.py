@@ -6,9 +6,13 @@ class Seller(models.Model):
 
     individual_number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=100)
+    short_name = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return self.name
+
+    def get_name(self):
+        return self.short_name or self.name
 
 
 class Product(models.Model):
