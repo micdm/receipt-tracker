@@ -59,3 +59,29 @@ class ReceiptItem(models.Model):
 
     def __str__(self):
         return '%s x%s по %s' % (self.product_alias, self.quantity, self.price)
+
+
+class AddReceiptTask(models.Model):
+
+    class Meta:
+        unique_together = ('fiscal_drive_number', 'fiscal_document_number', 'fiscal_sign')
+
+    STATUS_NEW = 0
+    STATUS_COMPLETE = 1
+    STATUS_INCOMPLETE = 2
+
+    STATUS_CHOICES = (
+        (STATUS_NEW, 'Новое'),
+        (STATUS_COMPLETE, 'Выполнено'),
+        (STATUS_INCOMPLETE, 'Не выполнено'),
+    )
+
+    fiscal_drive_number = models.BigIntegerField()
+    fiscal_document_number = models.BigIntegerField()
+    fiscal_sign = models.BigIntegerField()
+    buyer = models.ForeignKey(get_user_model())
+    created = models.DateTimeField(auto_now_add=True)
+    status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=STATUS_NEW)
+
+    def __str__(self):
+        return '%s-%s-%s' % (self.fiscal_drive_number, self.fiscal_document_number, self.fiscal_sign)

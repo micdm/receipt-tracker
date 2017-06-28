@@ -10,6 +10,6 @@ urlpatterns = (
     url(r'^$', views.IndexView.as_view(), name='index'),
     url(r'^log_out$', logout, {'next_page': '/'}, name='logout'),
     url(r'^add_receipt$', views.AddReceiptView.as_view(), name='add_receipt'),
-    url(r'^receipt_added/(?P<fiscal_drive_number>\d+)-(?P<fiscal_document_number>\d+)-(?P<fiscal_sign>\d+)$', views.ReceiptAddedView.as_view(), name='receipt_added'),
+    url(r'^receipt_added$', views.ReceiptAddedView.as_view(), name='receipt_added'),
     url(r'^product/(?P<product_id>\d+)$', views.ProductView.as_view(), name='product'),
 )

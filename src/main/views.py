@@ -56,13 +56,8 @@ class AddReceiptView(View):
             if qr_form.is_valid():
                 try:
                     params = self._get_receipt_params_from_qr(qr_form.cleaned_data['text'])
-                    data = self._get_receipt_json(*params)
-                    receipt = self._save_receipt(data['document']['receipt'], request.user)
-                    return HttpResponseRedirect(reverse('receipt_added', kwargs={
-                        'fiscal_drive_number': receipt.fiscal_drive_number,
-                        'fiscal_document_number': receipt.fiscal_document_number,
-                        'fiscal_sign': receipt.fiscal_sign
-                    }))
+                    self._add_receipt_task(request.user, *params)
+                    return HttpResponseRedirect(reverse('receipt_added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
                     qr_form.add_error(None, 'Не удалось добавить чек: %s' % e)
@@ -72,15 +67,10 @@ class AddReceiptView(View):
             manual_input_form = forms.ManualInputForm(request.POST)
             if manual_input_form.is_valid():
                 try:
-                    data = self._get_receipt_json(manual_input_form.cleaned_data['fiscal_drive_number'],
-                                                  manual_input_form.cleaned_data['fiscal_document_number'],
-                                                  manual_input_form.cleaned_data['fiscal_sign'])
-                    receipt = self._save_receipt(data['document']['receipt'], request.user)
-                    return HttpResponseRedirect(reverse('receipt_added', kwargs={
-                        'fiscal_drive_number': receipt.fiscal_drive_number,
-                        'fiscal_document_number': receipt.fiscal_document_number,
-                        'fiscal_sign': receipt.fiscal_sign
-                    }))
+                    self._add_receipt_task(request.user, manual_input_form.cleaned_data['fiscal_drive_number'],
+                                           manual_input_form.cleaned_data['fiscal_document_number'],
+                                           manual_input_form.cleaned_data['fiscal_sign'])
+                    return HttpResponseRedirect(reverse('receipt_added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
                     manual_input_form.add_error(None, 'Не удалось добавить чек: %s' % e)
@@ -91,13 +81,8 @@ class AddReceiptView(View):
             if photo_form.is_valid():
                 try:
                     params = self._get_receipt_params_from_photo(photo_form.cleaned_data['photo'])
-                    data = self._get_receipt_json(*params)
-                    receipt = self._save_receipt(data['document']['receipt'], request.user)
-                    return HttpResponseRedirect(reverse('receipt_added', kwargs={
-                        'fiscal_drive_number': receipt.fiscal_drive_number,
-                        'fiscal_document_number': receipt.fiscal_document_number,
-                        'fiscal_sign': receipt.fiscal_sign
-                    }))
+                    self._add_receipt_task(request.user, *params)
+                    return HttpResponseRedirect(reverse('receipt_added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
                     photo_form.add_error(None, 'Не удалось добавить чек: %s' % e)
@@ -123,74 +108,22 @@ class AddReceiptView(View):
         except Exception as e:
             raise Exception('не удалось распознать QR-код на фотографии: %s' % e)
 
-    def _get_receipt_json(self, fiscal_drive_number, fiscal_document_number, fiscal_sign):
-        response = requests.get(
-            'http://proverkacheka.nalog.ru:8888/v1/inns/*/kkts/*/fss/%s/tickets/%s?fiscalSign=%s&sendToEmail=no' % (
-            fiscal_drive_number, fiscal_document_number, fiscal_sign),
-            auth=(settings.CHECKER_LOGIN, settings.CHECKER_PASSWORD),
-            headers={
-                'Device-Id': settings.CHECKER_DEVICE_ID,
-                'Device-OS': settings.CHECKER_DEVICE_OS,
-            })
-        if response.status_code == HTTPStatus.ACCEPTED:
-            time.sleep(3)
-            return self._get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign)
-        if response.status_code != HTTPStatus.OK:
-            raise Exception('ответ сервера был %s (%s)' % (response.status_code, response.content.decode('utf-8')))
-        result = response.json()
-        logger.debug('Receipt JSON is %s', result)
-        return result
-
-    def _save_receipt(self, data, user):
-        if Receipt.objects.filter(fiscal_drive_number=data['fiscalDriveNumber'],
-                                  fiscal_document_number=data['fiscalDocumentNumber'],
-                                  fiscal_sign=data['fiscalSign']).exists():
-            raise Exception('чек уже добавлен')
+    def _add_receipt_task(self, user, fiscal_drive_number, fiscal_document_number, fiscal_sign):
         with transaction.atomic():
-            seller = Seller.objects.get_or_create(individual_number=data['userInn'], defaults={'name': data['user']})[0]
-            receipt = Receipt.objects.create(seller=seller, buyer=user,
-                                             created=datetime.strptime(data['dateTime'], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone(timedelta(hours=4))).astimezone(timezone.utc),
-                                             fiscal_drive_number=data['fiscalDriveNumber'],
-                                             fiscal_document_number=data['fiscalDocumentNumber'],
-                                             fiscal_sign=data['fiscalSign'])
-            for item in data['items']:
-                if 'barcode' in item:
-                    product = Product.objects.get_or_create(barcode=item['barcode'])[0]
-                    product_alias = ProductAlias.objects.get_or_create(seller=seller, product=product, name=item['name'])[0]
-                else:
-                    product_alias = ProductAlias.objects.filter(seller=seller, name=item['name']).first()
-                    if not product_alias:
-                        product = Product.objects.create()
-                        product_alias = ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
-                ReceiptItem.objects.create(receipt=receipt, product_alias=product_alias,
-                                           price=decimal.Decimal(item['price'] / 100),
-                                           quantity=decimal.Decimal(item['quantity']),
-                                           total=decimal.Decimal(item['sum'] / 100))
-        return receipt
+            if AddReceiptTask.objects.filter(fiscal_drive_number=fiscal_drive_number,
+                                             fiscal_document_number=fiscal_document_number,
+                                             fiscal_sign=fiscal_sign).exists():
+                raise Exception('чек уже добавлен')
+            AddReceiptTask.objects.create(fiscal_drive_number=fiscal_drive_number,
+                                          fiscal_document_number=fiscal_document_number,
+                                          fiscal_sign=fiscal_sign,
+                                          buyer=user)
 
 
 class ReceiptAddedView(View):
 
-    def get(self, request, fiscal_drive_number, fiscal_document_number, fiscal_sign):
-        receipt = Receipt.objects.filter(fiscal_drive_number=fiscal_drive_number, fiscal_document_number=fiscal_document_number,
-                                         fiscal_sign=fiscal_sign).first()
-        if receipt is None:
-            return HttpResponseNotFound()
-        return render(request, 'receipt_added.html', self._get_context(receipt))
-
-    def _get_context(self, receipt):
-        return {
-            'receipt': {
-                'seller': receipt.seller.get_name(),
-                'created': receipt.created,
-                'items': [{
-                    'product_id': item.product_alias.product.id,
-                    'name': item.product_alias.name,
-                    'quantity': item.quantity,
-                    'price': item.price
-                } for item in receipt.receiptitem_set.all()]
-            }
-        }
+    def get(self, request):
+        return render(request, 'receipt_added.html')
 
 
 class ProductView(View):
