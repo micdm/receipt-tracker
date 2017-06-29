@@ -43,7 +43,22 @@ class _DefaultReceiptRetriever(ReceiptRetriever):
                 return self._get_receipt(fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number + 1)
         if response.status_code != HTTPStatus.OK:
             raise Exception("server response was %s (%s)" % (response.status_code, response.content.decode("utf-8")))
-        return response.json()
+        receipt = response.json()['document']['receipt']
+        return {
+            'fiscal_drive_number': receipt['fiscalDriveNumber'],
+            'fiscal_document_number': receipt['fiscalDocumentNumber'],
+            'fiscal_sign': receipt['fiscalSign'],
+            'seller_name': receipt['user'],
+            'seller_individual_number': receipt['userInn'],
+            'created': receipt['dateTime'],
+            'items': tuple({
+                'barcode': item.get('barcode'),
+                'name': item['name'],
+                'price': str(item['price'] / 100),
+                'quantity': str(item['quantity']),
+                'total': str(item['sum'] / 100)
+            } for item in receipt['items'])
+        }
 
 
 class _PlatformaOfdOperatorReceiptRetriever:
@@ -59,17 +74,13 @@ class _PlatformaOfdOperatorReceiptRetriever:
         if not tree.xpath("//span[contains(@class, 'glyphicon-download-alt')]"):
             return None
         return {
-            'document': {
-                'receipt': {
-                    'fiscalDriveNumber': self._get_second_column_text(tree, "заводской номер фискального накопителя", True),
-                    'fiscalDocumentNumber': self._get_second_column_text(tree, "порядковый номер фискального документа", True),
-                    'fiscalSign': self._get_second_column_text(tree, "фискальный признак документа", True),
-                    'user': self._get_second_column_text(tree, "наименование пользователя"),
-                    'userInn': self._get_second_column_text(tree, "ИНН пользователя", True),
-                    'dateTime': datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M').strftime('%Y-%m-%dT%H:%M:%S'),
-                    'items': tuple(self._get_items(tree))
-                }
-            }
+            'fiscal_drive_number': self._get_second_column_text(tree, "заводской номер фискального накопителя", True),
+            'fiscal_document_number': self._get_second_column_text(tree, "порядковый номер фискального документа", True),
+            'fiscal_sign': self._get_second_column_text(tree, "фискальный признак документа", True),
+            'seller_name': self._get_second_column_text(tree, "наименование пользователя"),
+            'seller_individual_number': self._get_second_column_text(tree, "ИНН пользователя", True),
+            'created': datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M').strftime('%Y-%m-%dT%H:%M:%S'),
+            'items': tuple(self._get_items(tree))
         }
 
     def _get_items(self, tree):
@@ -80,7 +91,7 @@ class _PlatformaOfdOperatorReceiptRetriever:
                 'barcode': strings[i + 1],
                 'price': strings[i + 2],
                 'quantity': strings[i + 3],
-                'sum': strings[i + 4]
+                'total': strings[i + 4]
             }
 
     def _get_second_column_text(self, tree, first_column_text, is_bold=False):

@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 self._set_task_status(task.id, AddReceiptTask.STATUS_INCOMPLETE)
                 data = self._receipt_retriever.get_receipt(task.fiscal_drive_number, task.fiscal_document_number, task.fiscal_sign)
                 logger.debug('Receipt JSON is %s', data)
-                receipt = self._save_receipt(data['document']['receipt'], task.buyer)
+                receipt = self._save_receipt(data, task.buyer)
                 self._set_task_status(task.id, AddReceiptTask.STATUS_COMPLETE)
                 logger.info("Task complete, receipt ID is %s", receipt.id)
         except Exception as e:
@@ -42,12 +42,12 @@ class Command(BaseCommand):
 
     def _save_receipt(self, data, user):
         logger.debug("Storing receipt into database")
-        seller = Seller.objects.get_or_create(individual_number=data['userInn'], defaults={'name': data['user']})[0]
+        seller = Seller.objects.get_or_create(individual_number=data['seller_individual_number'], defaults={'name': data['seller_name']})[0]
         receipt = Receipt.objects.create(seller=seller, buyer=user,
-                                         created=datetime.strptime(data['dateTime'], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone(timedelta(hours=4))).astimezone(timezone.utc),
-                                         fiscal_drive_number=data['fiscalDriveNumber'],
-                                         fiscal_document_number=data['fiscalDocumentNumber'],
-                                         fiscal_sign=data['fiscalSign'])
+                                         created=datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone(timedelta(hours=4))).astimezone(timezone.utc),
+                                         fiscal_drive_number=data['fiscal_drive_number'],
+                                         fiscal_document_number=data['fiscal_document_number'],
+                                         fiscal_sign=data['fiscal_sign'])
         for item in data['items']:
             if 'barcode' in item:
                 product = Product.objects.get_or_create(barcode=item['barcode'])[0]
@@ -58,9 +58,9 @@ class Command(BaseCommand):
                     product = Product.objects.create()
                     product_alias = ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
             ReceiptItem.objects.create(receipt=receipt, product_alias=product_alias,
-                                       price=Decimal(item['price'] / 100),
+                                       price=Decimal(item['price']),
                                        quantity=Decimal(item['quantity']),
-                                       total=Decimal(item['sum'] / 100))
+                                       total=Decimal(item['total']))
         return receipt
 
     def _set_task_status(self, task_id, status):
