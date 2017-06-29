@@ -3,6 +3,7 @@ __pycache__
 .virtualenv/
 conf/
 data/
+log/
 run/
 static/
 settings_local.py
