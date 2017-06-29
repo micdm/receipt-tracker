@@ -2,3 +2,4 @@ django
 pillow
 requests
 social-auth-app-django
+lxml

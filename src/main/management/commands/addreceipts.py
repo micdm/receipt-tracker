@@ -10,15 +10,14 @@ from django.core.management import BaseCommand
 from django.db import transaction
 
 from main.models import AddReceiptTask, Seller, Receipt, Product, ProductAlias, ReceiptItem
-
+from main.stuff.receipt_retrievers import get_receipt_retriever
 
 logger = getLogger(__name__)
 
 
 class Command(BaseCommand):
 
-    MAX_TRIES = 5
-    RETRY_DELAY = timedelta(seconds=5)
+    _receipt_retriever = get_receipt_retriever()
 
     def handle(self, *args, **options):
         logger.info("Checking for unhandled receipts")
@@ -33,34 +32,13 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 self._set_task_status(task.id, AddReceiptTask.STATUS_INCOMPLETE)
-                data = self._get_receipt_json(task.fiscal_drive_number, task.fiscal_document_number, task.fiscal_sign)
+                data = self._receipt_retriever.get_receipt(task.fiscal_drive_number, task.fiscal_document_number, task.fiscal_sign)
                 logger.debug('Receipt JSON is %s', data)
                 receipt = self._save_receipt(data['document']['receipt'], task.buyer)
                 self._set_task_status(task.id, AddReceiptTask.STATUS_COMPLETE)
                 logger.info("Task complete, receipt ID is %s", receipt.id)
         except Exception as e:
             logger.info("Cannot complete task: %s", e)
-
-    def _get_receipt_json(self, fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number=1):
-        logger.debug("Retrieving receipt JSON")
-        response = requests.get(
-            'http://proverkacheka.nalog.ru:8888/v1/inns/*/kkts/*/fss/%s/tickets/%s?fiscalSign=%s&sendToEmail=no' % (
-            fiscal_drive_number, fiscal_document_number, fiscal_sign),
-            auth=(settings.CHECKER_LOGIN, settings.CHECKER_PASSWORD),
-            headers={
-                'Device-Id': settings.CHECKER_DEVICE_ID,
-                'Device-OS': settings.CHECKER_DEVICE_OS,
-            })
-        if response.status_code == HTTPStatus.ACCEPTED:
-            if try_number == self.MAX_TRIES:
-                raise Exception('no result after %s tries' % try_number)
-            else:
-                logger.debug("Server response was %s, retrying in several seconds", response.status_code)
-                time.sleep(self.RETRY_DELAY.total_seconds())
-                return self._get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number + 1)
-        if response.status_code != HTTPStatus.OK:
-            raise Exception('server response was %s (%s)' % (response.status_code, response.content.decode('utf-8')))
-        return response.json()
 
     def _save_receipt(self, data, user):
         logger.debug("Storing receipt into database")
