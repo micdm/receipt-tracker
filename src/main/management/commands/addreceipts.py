@@ -17,11 +17,13 @@ logger = getLogger(__name__)
 
 class Command(BaseCommand):
 
-    RETRY_DELAY = timedelta(seconds=3)
+    MAX_TRIES = 5
+    RETRY_DELAY = timedelta(seconds=5)
 
     def handle(self, *args, **options):
         logger.info("Checking for unhandled receipts")
-        tasks = AddReceiptTask.objects.filter(status__in=(AddReceiptTask.STATUS_NEW, AddReceiptTask.STATUS_INCOMPLETE))
+        tasks = AddReceiptTask.objects.filter(created__gt=datetime.utcnow() - timedelta(days=7),
+                                              status__in=(AddReceiptTask.STATUS_NEW, AddReceiptTask.STATUS_INCOMPLETE))
         logger.info("%s tasks found", len(tasks))
         for task in tasks:
             self._handle_task(task)
@@ -39,7 +41,7 @@ class Command(BaseCommand):
         except Exception as e:
             logger.info("Cannot complete task: %s", e)
 
-    def _get_receipt_json(self, fiscal_drive_number, fiscal_document_number, fiscal_sign):
+    def _get_receipt_json(self, fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number=1):
         logger.debug("Retrieving receipt JSON")
         response = requests.get(
             'http://proverkacheka.nalog.ru:8888/v1/inns/*/kkts/*/fss/%s/tickets/%s?fiscalSign=%s&sendToEmail=no' % (
@@ -50,9 +52,12 @@ class Command(BaseCommand):
                 'Device-OS': settings.CHECKER_DEVICE_OS,
             })
         if response.status_code == HTTPStatus.ACCEPTED:
-            logger.debug("Server response was %s, retrying in several seconds", response.status_code)
-            time.sleep(self.RETRY_DELAY.total_seconds())
-            return self._get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign)
+            if try_number == self.MAX_TRIES:
+                raise Exception('no result after %s tries' % try_number)
+            else:
+                logger.debug("Server response was %s, retrying in several seconds", response.status_code)
+                time.sleep(self.RETRY_DELAY.total_seconds())
+                return self._get_receipt_json(fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number + 1)
         if response.status_code != HTTPStatus.OK:
             raise Exception('server response was %s (%s)' % (response.status_code, response.content.decode('utf-8')))
         return response.json()
