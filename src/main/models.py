@@ -79,6 +79,7 @@ class AddReceiptTask(models.Model):
     fiscal_drive_number = models.BigIntegerField()
     fiscal_document_number = models.BigIntegerField()
     fiscal_sign = models.BigIntegerField()
+    total_sum = models.DecimalField(decimal_places=2, max_digits=10, null=True)
     buyer = models.ForeignKey(get_user_model())
     created = models.DateTimeField(auto_now_add=True)
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=STATUS_NEW)

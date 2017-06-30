@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Такском Чек</title>
+        <meta name="viewport" content="width=550, target-densitydpi=device-dpi, initial-scale=0.6, maximum-scale=1, user-scalable=yes">
+        <meta name="format-detection" content="telephone=no"/>
+    
+        <link href="/Content/css/bundle_css?v=z_NxY-ary7e_UKpmQWZrfrXJYwZcuOTe1MfLU8rvQkM1" rel="stylesheet"/>
+
+        <link href="/Content/css/fontface.css" rel="stylesheet">
+        <link href="/Content/css/font-awesome.min.css" rel="stylesheet">
+
+        <script src="/bundles/modernizr?v=w9fZKPSiHtN4N4FRqV7jn-3kGoQY5hHpkwFv5TfMrus1"></script>
+
+    
+        <script src="/bundles/jquery?v=BYfN95k-efPoFso2uixbauNi0uDY-UT3doGW48SdqPk1"></script>
+
+        <script src="/bundles/bootstrap?v=mAh4n4EUASqwe-wXRUl25xePEOj1qJVYjV9v2bbVUJo1"></script>
+
+        
+        <script src="/Scripts/JsBarcode.all.js"></script>
+
+    </head>
+    <body>
+        <header class="header">
+            <div class="wrapper">
+                <div class="grid-container justify-container">
+                    <div class="justify-item" style="vertical-align: middle;">
+                        <a class="header-logo" href="/">
+                            <img src="/Content/images/logo-taxcom-check.png" width="36" height="48" alt="Такском Чек">
+                        </a>
+                        <div class="header-title">
+                            Такском Чек
+                        </div>
+                    </div>
+                    <div class="header-menu justify-item">
+                        <ul>
+                            <li><a href="http://kkt-taxcom.ru/" id="about_serv">О сервисе</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+            <div class="wrapper">
+                
+
+<style>
+    .invoice-box {
+        max-width: 470px;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #eee;
+        box-shadow: 0 0 5px 2px rgba(0,0,0,.3);
+        font-size: 18px;
+        line-height: 20px;
+        font-family: 'CourierNewPSMT', 'Courier New', monospace;
+        color: black;
+    }
+
+    /*.invoice-box table {
+        width: 100%;
+        max-width: 470px;
+        line-height: inherit;
+        text-align: left;
+        table-layout: fixed;
+    }
+
+    .invoice-box table td {
+        vertical-align: top;
+        overflow-wrap: break-word;  
+        word-wrap: break-word;
+        word-break: break-all;  
+        white-space: normal;
+    }
+
+    .invoice-box table tr td:nth-child(2) {
+        text-align: right;
+        white-space: nowrap;
+    }
+    .invoice-box table tr td:nth-child(3) {
+        text-align: right;
+        white-space: nowrap;
+    }
+    .invoice-box table tr.total {
+        font-size: 32px;
+    }
+    .invoice-box table tr.item {
+        word-spacing: -7px;
+    }
+    .invoice-box table tr.total td {
+        padding-top: 32px;
+        padding-bottom: 32px;
+    }*/
+
+</style>
+
+<div class="grid-container">
+    <div class="main-content">
+            <div class="jumbotron">
+                <h1 id="receipt_title">Вот, что мы нашли по идентификатору чека <span class="slip-id">1759143434</span></h1>
+
+                <div class="container">
+
+                    
+                    <div class="invoice-box">
+                        <div>
+	 
+		<style>	  
+		.receipt_report .position {
+		   font-weight: bold;
+		}
+		.receipt_report table {
+		   width: 400px;
+		}
+		.receipt_report tr, .receipt_report td {
+		   font-family: 'CourierNewPSMT', 'Courier New', monospace;
+		   font-size: 15px;
+		}
+		</style>
+   
+	    <div class="receipt_report">
+			<table>
+				<tr>
+					<td colspan="2" align="center"><b><span id="fld_IA5AE16BA9">              ООО "Лента"                </span></b></td>
+					
+				</tr>
+				<tr>
+					<td colspan="2" align="center"><b>ИНН <span id="fld_IFF233FC98">7814148471  </span></b></td>
+					
+				</tr>
+				<tr>
+					<td colspan="2" align="center">КАССОВЫЙ ЧЕК № <span id="fld_IC0FC84009">350</span></td>
+					
+				</tr>
+				<tr>
+					<td class="name" align="left" style="white-space: nowrap"><span id="fld_I30345CA1B">Приход</span></td>
+					<td class="result" align="right" style="white-space: nowrap"><span style="display:none"><span id="fld_I972E09F89">23.06.2017 20:39</span></span><span id="fld_I3304D483A">23.06.2017 20:39</span></td>
+				</tr>
+				<tr>
+					<td colspan="2" style="padding-left:4px;"><span id="fld_IA9BA96DC9"></span></td>
+				</tr>
+				<tr>
+					<td colspan="2" style="white-space: nowrap"></br></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap;">Кассир</td>
+					<td class="result" align="right"><span id="fld_I1DE702AA6">Анисимова Марина Владими</span></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap">№ смены</td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_IBB73509AA">12</span></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap">Система н/о</td>
+					<td class="result" align="right"><span id="fld_I4327C78E7">Общая</span></td>
+				</tr>
+			</table> 
+			
+			<div id="vmb_I67BC30956372029315">
+		<input type="hidden" name="vmb_I67BC30956372029315$blocksCount" id="vmb_I67BC30956372029315_blocksCount" /><div class="ttc_multiple_block_panel">
+
+		</div><table name="vmb_I67BC30956372029315$vblock0" id="vmb_I67BC30956372029315_vblock0" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>	
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock0_ctl00_fld_I92AF67E37">Пиво HEINEKEN 4,8% 0.5L ст</span></td>
+				</tr>	
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock0_ctl02_fld_ID42028CB3">20,000</span> X <span id="vmb_I67BC30956372029315_vblock0_ctl01_fld_I688F9A1CD">46.89</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock0_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock0_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock0_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock0_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+					
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock0_ctl12_fld_I7A67D1B011">937.80</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock0_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock0_ctl07_fld_I8018B27BD">18%</span> <span id="vmb_I67BC30956372029315_vblock0_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock0_ctl10_fld_I1B0025B3B">143.05</span></span><span id="vmb_I67BC30956372029315_vblock0_ctl11_fld_ID0F0119EC">143.05</span></td>
+				</tr>
+			</table> 	
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock1" id="vmb_I67BC30956372029315_vblock1" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>	
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock1_ctl00_fld_I92AF67E37">Пакет ЛЕНТА майка 12кг</span></td>
+				</tr>	
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock1_ctl02_fld_ID42028CB3">1,000</span> X <span id="vmb_I67BC30956372029315_vblock1_ctl01_fld_I688F9A1CD">6.49</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock1_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock1_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock1_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock1_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+					
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock1_ctl12_fld_I7A67D1B011">6.49</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock1_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock1_ctl07_fld_I8018B27BD">18%</span> <span id="vmb_I67BC30956372029315_vblock1_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock1_ctl10_fld_I1B0025B3B">0.99</span></span><span id="vmb_I67BC30956372029315_vblock1_ctl11_fld_ID0F0119EC">0.99</span></td>
+				</tr>
+			</table> 	
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock3" id="vmb_I67BC30956372029315_vblock3" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock3_ctl00_fld_I92AF67E37">Коньяк СТАРЕЙШИНА Российский 5лет 1L</span></td>
+				</tr>
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock3_ctl02_fld_ID42028CB3">1,000</span> X <span id="vmb_I67BC30956372029315_vblock3_ctl01_fld_I688F9A1CD">1289.00</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock3_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock3_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock3_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock3_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock3_ctl12_fld_I7A67D1B011">1289.00</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock3_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock3_ctl07_fld_I8018B27BD">18%</span> <span id="vmb_I67BC30956372029315_vblock3_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock3_ctl10_fld_I1B0025B3B">196.63</span></span><span id="vmb_I67BC30956372029315_vblock3_ctl11_fld_ID0F0119EC">196.63</span></td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock5" id="vmb_I67BC30956372029315_vblock5" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock5_ctl00_fld_I92AF67E37">ВиноLaFermeDeCerraiМуск.бел.п/сл.Фр.0.75</span></td>
+				</tr>
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock5_ctl02_fld_ID42028CB3">2,000</span> X <span id="vmb_I67BC30956372029315_vblock5_ctl01_fld_I688F9A1CD">349.99</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock5_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock5_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock5_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock5_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock5_ctl12_fld_I7A67D1B011">699.98</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock5_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock5_ctl07_fld_I8018B27BD">18%</span> <span id="vmb_I67BC30956372029315_vblock5_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock5_ctl10_fld_I1B0025B3B">106.78</span></span><span id="vmb_I67BC30956372029315_vblock5_ctl11_fld_ID0F0119EC">106.78</span></td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock6" id="vmb_I67BC30956372029315_vblock6" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock6_ctl00_fld_I92AF67E37">Текила JOSE CUERVO Хосе Куэр Сильвер 0.7</span></td>
+				</tr>
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock6_ctl02_fld_ID42028CB3">1,000</span> X <span id="vmb_I67BC30956372029315_vblock6_ctl01_fld_I688F9A1CD">1319.99</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock6_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock6_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock6_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock6_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock6_ctl12_fld_I7A67D1B011">1319.99</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock6_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock6_ctl07_fld_I8018B27BD">18%</span> <span id="vmb_I67BC30956372029315_vblock6_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock6_ctl10_fld_I1B0025B3B">201.35</span></span><span id="vmb_I67BC30956372029315_vblock6_ctl11_fld_ID0F0119EC">201.35</span></td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock9" id="vmb_I67BC30956372029315_vblock9" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock9_ctl00_fld_I92AF67E37">Чеснок вес 1кг</span></td>
+				</tr>
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock9_ctl02_fld_ID42028CB3">0,238</span> X <span id="vmb_I67BC30956372029315_vblock9_ctl01_fld_I688F9A1CD">129.99</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock9_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock9_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock9_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock9_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock9_ctl12_fld_I7A67D1B011">30.94</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock9_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock9_ctl07_fld_I8018B27BD">10%</span> <span id="vmb_I67BC30956372029315_vblock9_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock9_ctl10_fld_I1B0025B3B">2.81</span></span><span id="vmb_I67BC30956372029315_vblock9_ctl11_fld_ID0F0119EC">2.81</span></td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table><table name="vmb_I67BC30956372029315$vblock44" id="vmb_I67BC30956372029315_vblock44" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table>
+				<tr>
+					<td class="position" colspan="4"><span id="vmb_I67BC30956372029315_vblock44_ctl00_fld_I92AF67E37">Пирог Лента с луком и яйцом вес</span></td>
+				</tr>
+				<tr class="result">
+					<td colspan="5" style="white-space: nowrap;  height:20px; text-align:right"><span id="vmb_I67BC30956372029315_vblock44_ctl02_fld_ID42028CB3">0,331</span> X <span id="vmb_I67BC30956372029315_vblock44_ctl01_fld_I688F9A1CD">182.17</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock44_ctl03_fld_I62B79B1FB"></span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock44_ctl04_fld_I9ECE5EE1D"></span><span id="vmb_I67BC30956372029315_vblock44_ctl06_fld_I3F26DCA813"></span><span id="vmb_I67BC30956372029315_vblock44_ctl05_fld_I90FAE9F6C"></span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">Сумма</td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock44_ctl12_fld_I7A67D1B011">60.30</span></td>
+				</tr>
+
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1"><span id="vmb_I67BC30956372029315_vblock44_ctl09_fld_IC37ACB9710">НДС</span></td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_I67BC30956372029315_vblock44_ctl07_fld_I8018B27BD">10%</span> <span id="vmb_I67BC30956372029315_vblock44_ctl08_fld_I2895A98012">=</span> <span style="display:none"><span id="vmb_I67BC30956372029315_vblock44_ctl10_fld_I1B0025B3B">5.48</span></span><span id="vmb_I67BC30956372029315_vblock44_ctl11_fld_ID0F0119EC">5.48</span></td>
+				</tr>
+			</table>
+			</td>
+			</tr>
+		</table>
+	</div>
+			
+			
+			<table>	
+				<!--
+				<tr>
+					<td class="name" style="white-space: nowrap;">ИТОГ Стоимость продажи</td>
+					<td class="result" style="white-space: nowrap;" align="right">= <span id="fld_I104A63EDA">12220.00</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap">ИТОГ Скидка</td>
+					<td class="result allow-empty" style="white-space: nowrap" align="right">= <span id="fld_I3BE31ED1D"></span></td>
+				</tr>
+				-->
+				<tr>
+					<td style="white-space: nowrap"></br></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap; font-size:22px"><b>ИТОГ</b></td>
+					<td class="result allow-empty" style="white-space: nowrap; font-size:22px" align="right"><b>= <span id="fld_IF780C77AD">12220.00</span></b></td>
+				</tr>
+				
+				<tr>
+					<td style="white-space: nowrap"></br></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap;"><span id="fld_I6CF915CB">НАЛИЧНЫМИ</span></td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_IDB35D1B611">=</span> <span id="fld_I2DA5ECC55">0.00</span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap"><span id="fld_I756B6730C">ЭЛЕКТРОННЫМИ</span></td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_I8FAEAA5A12">=</span> <span id="fld_I13E93D36">12220.00</span></td>
+				</tr>
+			</table>
+			
+			<div id="vmb_ID9BC226E3372029315">
+		<input type="hidden" name="vmb_ID9BC226E3372029315$blocksCount" id="vmb_ID9BC226E3372029315_blocksCount" /><div class="ttc_multiple_block_panel">
+
+		</div><table name="vmb_ID9BC226E3372029315$vblock0" id="vmb_ID9BC226E3372029315_vblock0" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table> 
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">НДС </td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_ID9BC226E3372029315_vblock0_ctl00_fld_ICD82A5B16">18%</span> = <span style="display:none"><span id="vmb_ID9BC226E3372029315_vblock0_ctl01_fld_IB52AB0BD4">1420.00</span></span><span id="vmb_ID9BC226E3372029315_vblock0_ctl02_fld_IC047292E5">1420.00</span></td>
+				</tr>	
+			</table> 	
+			</td>
+			</tr>
+		</table><table name="vmb_ID9BC226E3372029315$vblock1" id="vmb_ID9BC226E3372029315_vblock1" class="verticalBlock">
+			<tr>
+				<td class="verticalBlockContent">
+			<table> 
+				<tr>
+					<td class="name" style="white-space: nowrap; width:23%; " colspan="1">НДС </td>
+					<td class="result" style="white-space: nowrap;   text-align:right"><span id="vmb_ID9BC226E3372029315_vblock1_ctl00_fld_ICD82A5B16">10%</span> = <span style="display:none"><span id="vmb_ID9BC226E3372029315_vblock1_ctl01_fld_IB52AB0BD4">264.64</span></span><span id="vmb_ID9BC226E3372029315_vblock1_ctl02_fld_IC047292E5">264.64</span></td>
+				</tr>	
+			</table> 	
+			</td>
+			</tr>
+		</table>
+	</div>
+			<div id="vmb_IE28FC5AE7372029315">
+		<input type="hidden" name="vmb_IE28FC5AE7372029315$blocksCount" id="vmb_IE28FC5AE7372029315_blocksCount" /><div class="ttc_multiple_block_panel">
+
+		</div>
+	</div>
+			
+			<table>		
+				<!--
+					<tr>
+						<td class="name" style="white-space: nowrap"><span id="fld_IB77D0E81B">Карта</span></td>
+						<td class="result allow-empty" style="white-space: nowrap" align="right"><span id="fld_ID44FD9825"></span></td>
+					</tr>
+					<tr>
+						<td class="name" style="white-space: nowrap">НДС сумма (в руб.)</td>
+						<td class="result" style="white-space: nowrap" align="right">= </td>
+					</tr>
+					
+					<tr>
+						<td class="name" style="white-space: nowrap">Получено</td>
+						<td class="result allow-empty" style="white-space: nowrap" align="right">= <span id="fld_I6F292EDA8"></span></td>
+					</tr>
+					<tr>
+						<td class="name" style="white-space: nowrap">Сдача</td>
+						<td class="result allow-empty" style="white-space: nowrap" align="right">= <span id="fld_I8F0BBE925"></span></td>
+					</tr>
+				-->
+				<tr>
+					<td style="white-space: nowrap"></br></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap; valign:top" valign="top">Адрес покупателя</td>
+					<td class="result" align="right">&nbsp;<span id="fld_IC6D5C4AF6"></span></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap;">Рег.№ ККТ</td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_IBAD61F9D6">0000375876043319    </span></td>
+				</tr>
+				
+				<tr>
+					<td class="name" style="white-space: nowrap">Зав.№ ФН</td>
+					<td style="white-space: nowrap" align="right"><span id="fld_I3E08B7A78">8710000100547789</span></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap">№ ФД</td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_ID2246CE27">2601</span></td>
+				</tr>
+				<tr>
+					<td class="name" style="white-space: nowrap">ФПД</td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_I21D902173">1759143434</span></td>
+				</tr>
+				<!--
+				<tr>
+					<td class="name" style="white-space: nowrap">ФПС</td>
+					<td class="result" style="white-space: nowrap" align="right"><span id="fld_I21D901E23"></span></td>
+				</tr>
+				-->
+				<tr>
+					<td style="white-space: nowrap"></br></td>
+				</tr>
+			
+				<tr>
+					<td class="name" colspan="2">Адрес сайта для просмотра чека</br>https://receipt.taxcom.ru</td>
+				</tr>
+			</table>
+			
+			<div id="vmb_I7FC1BABB9372029315">
+		<input type="hidden" name="vmb_I7FC1BABB9372029315$blocksCount" id="vmb_I7FC1BABB9372029315_blocksCount" /><div class="ttc_multiple_block_panel">
+
+		</div>
+	</div>
+			<table>
+				<tr>
+					<td style="white-space: nowrap" colspan="2" ></br></td>
+				</tr>
+				<tr>
+					<td class="position" colspan="2" style="text-align: center">СПАСИБО<br>ЗА ПОКУПКУ!</td>
+				</tr>
+			</table>
+		</div>
+		
+
+	
+<div style="display:none"><nobr><input name="FldIB9A9315518" type="text" value="1" id="FldIB9A9315518" /><span></span></nobr></div><div style="display:none"><nobr><input name="FldI4FE0D8B11F" type="text" id="FldI4FE0D8B11F" /><span></span></nobr></div>
+</div>
+                    </div>
+                    
+<form action="/v01/show" class="form" method="post" style="max-width: 350px;"><input id="ReceiptId" name="ReceiptId" type="hidden" value="823E6ED7-8C91-4388-AE57-E59F9E19898D" /><input data-val="true" data-val-required="The Found field is required." id="Found" name="Found" type="hidden" value="True" /><input data-val="true" data-val-maxlength="Слишком длинная строка" data-val-maxlength-max="13" data-val-minlength="Слишком короткая строка" data-val-minlength-min="3" data-val-regex="Допустимы только цифры" data-val-regex-pattern="^\d+" data-val-required="Поле обязательно для заполнения" id="FiscalSign" name="FiscalSign" type="hidden" value="1759143434" /><input data-val="true" data-val-maxlength="Слишком длинная строка" data-val-maxlength-max="10" data-val-regex="Допустимы только цифры" data-val-regex-pattern="^\d+" id="DocumentFiscalNumber" name="DocumentFiscalNumber" type="hidden" value="2601" /><input data-val="true" data-val-date="The field ReceiptDate must be a date." data-val-required="The ReceiptDate field is required." id="ReceiptDate" name="ReceiptDate" type="hidden" value="23.06.2017 20:39:00" />                            <div class="form-group">
+                                <label for="email">Вы можете отправить копию чека на свой email</label>
+                                <div class="row">
+                                    <input class="form-control-inline  col-xs-12 col-md-8 col-lg-8" id="email" maxlength="255" name="Email" placeholder="Введите email для отправки" style="margin-bottom: 10px;" type="text" value="" />
+                                    <div class="col-xs-12 col-md-4 col-lg-4">
+                                        <button type="submit" class="btn btn-default  btn-send-slip">
+                                            Отправить
+                                        </button>
+                                    </div>
+                                    <label style="color: red;"></label>
+                                </div>
+                            </div>
+</form>                        <div class="form" style="max-width: 350px;">
+                            <div class="form-group clearfix" style="margin-top: 60px">
+                                <div class="row">
+                                    <button onclick="location.href = '/'; " class="btn btn-primary  col-xs-12 col-md-12 col-lg-12">
+                                        Проверить другой чек
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+    </div>
+
+</div><!--/.grid-container-->
+
+<script src="/Scripts/ismobile.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function(e) {
+        if (isMobile()) document.documentElement.classList.add("mobile");
+    }, false);
+</script>
+
+
+            </div><!--/.wrapper-->
+        </div><!--/.main-->
+    
+        <footer class="footer" id="footer_no_print">
+            <div class="wrapper">
+                <div class="grid-container justify-container">
+                    <div class="footer-cont-1 justify-item">
+                        <div class="footer-logo">
+                            <a href="http://taxcom.ru" target="_blank"><img src="/Content/Images/logo-taxcom-2.png" width="55" height="22" alt="Такском"></a>
+                        </div>
+                        <div class="colophon">
+                            <div class="copyright">2016 © ООО «Такском»</div>
+                            <div class="version">Версия 1.1</div>
+                        </div>
+                    </div>
+                    <div class="footer-menu justify-item">
+                        <ul>
+                            <li><a href="http://kkt-taxcom.ru/" target="_blank">Помощь</a></li>
+                            <li><a href="http://kkt-taxcom.ru/" target="_blank">О сервисе</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>
+
+<script>
+    if ($('#about_serv').length == 0) {
+        $('#footer_no_print').hide();
+    }
+</script>
+

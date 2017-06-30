@@ -69,7 +69,8 @@ class AddReceiptView(View):
                 try:
                     self._add_receipt_task(request.user, manual_input_form.cleaned_data['fiscal_drive_number'],
                                            manual_input_form.cleaned_data['fiscal_document_number'],
-                                           manual_input_form.cleaned_data['fiscal_sign'])
+                                           manual_input_form.cleaned_data['fiscal_sign'],
+                                           manual_input_form.cleaned_data['total_sum'])
                     return HttpResponseRedirect(reverse('receipt_added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
@@ -96,7 +97,7 @@ class AddReceiptView(View):
 
     def _get_receipt_params_from_qr(self, text):
         try:
-            return tuple(re.search(pattern, text).group(1) for pattern in (r'fn=(\d+)', r'i=(\d+)', r'fp=(\d+)'))
+            return tuple(re.search(pattern, text).group(1) for pattern in (r'fn=(\d+)', r'i=(\d+)', r'fp=(\d+)', r's=([\d.]+)'))
         except Exception:
             raise Exception('не удалось разобрать QR-текст')
 
@@ -108,7 +109,7 @@ class AddReceiptView(View):
         except Exception as e:
             raise Exception('не удалось распознать QR-код на фотографии: %s' % e)
 
-    def _add_receipt_task(self, user, fiscal_drive_number, fiscal_document_number, fiscal_sign):
+    def _add_receipt_task(self, user, fiscal_drive_number, fiscal_document_number, fiscal_sign, total_sum):
         with transaction.atomic():
             if AddReceiptTask.objects.filter(fiscal_drive_number=fiscal_drive_number,
                                              fiscal_document_number=fiscal_document_number,
@@ -117,6 +118,7 @@ class AddReceiptView(View):
             AddReceiptTask.objects.create(fiscal_drive_number=fiscal_drive_number,
                                           fiscal_document_number=fiscal_document_number,
                                           fiscal_sign=fiscal_sign,
+                                          total_sum=total_sum,
                                           buyer=user)
 
 

@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 class ReceiptRetriever:
 
-    def get_receipt(self, fiscal_drive_number, fiscal_document_number, fiscal_sign):
+    def get_receipt(self, **kwargs):
         raise NotImplementedError()
 
 
@@ -22,8 +22,11 @@ class _DefaultReceiptRetriever(ReceiptRetriever):
     MAX_TRIES = 5
     RETRY_DELAY = timedelta(seconds=5)
 
-    def get_receipt(self, fiscal_drive_number, fiscal_document_number, fiscal_sign):
-        return self._get_receipt(fiscal_drive_number, fiscal_document_number, fiscal_sign, 1)
+    def get_receipt(self, **kwargs):
+        params = kwargs.get("fiscal_drive_number"), kwargs.get("fiscal_document_number"), kwargs.get("fiscal_sign")
+        if not all(params):
+            raise _NotEnoughParameters()
+        return self._get_receipt(*params, try_number=1)
 
     def _get_receipt(self, fiscal_drive_number, fiscal_document_number, fiscal_sign, try_number):
         logger.debug("Retrieving receipt JSON")
@@ -50,7 +53,7 @@ class _DefaultReceiptRetriever(ReceiptRetriever):
             'fiscal_sign': receipt['fiscalSign'],
             'seller_name': receipt['user'],
             'seller_individual_number': receipt['userInn'],
-            'created': receipt['dateTime'],
+            'created': datetime.strptime(receipt['dateTime'], '%Y-%m-%dT%H:%M:%S') - timedelta(hours=4),
             'items': tuple({
                 'barcode': item.get('barcode'),
                 'name': item['name'],
@@ -61,10 +64,13 @@ class _DefaultReceiptRetriever(ReceiptRetriever):
         }
 
 
-class _PlatformaOfdOperatorReceiptRetriever:
+class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
 
-    def get_receipt(self, fiscal_drive_number, fiscal_document_number, fiscal_sign):
-        response = requests.get("https://lk.platformaofd.ru/web/noauth/cheque?fn=%s&fp=%s" % (fiscal_drive_number, fiscal_sign))
+    def get_receipt(self, **kwargs):
+        params = kwargs.get("fiscal_drive_number"), kwargs.get("fiscal_sign")
+        if not all(params):
+            raise _NotEnoughParameters()
+        response = requests.get("https://lk.platformaofd.ru/web/noauth/cheque?fn=%s&fp=%s" % params)
         if response.status_code != HTTPStatus.OK:
             raise Exception("server response was %s (%s)" % (response.status_code, response.content))
         return self._parse_html(response.content)
@@ -79,9 +85,12 @@ class _PlatformaOfdOperatorReceiptRetriever:
             'fiscal_sign': self._get_second_column_text(tree, "фискальный признак документа", True),
             'seller_name': self._get_second_column_text(tree, "наименование пользователя"),
             'seller_individual_number': self._get_second_column_text(tree, "ИНН пользователя", True),
-            'created': datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M').strftime('%Y-%m-%dT%H:%M:%S'),
+            'created': self._get_created(tree),
             'items': tuple(self._get_items(tree))
         }
+
+    def _get_created(self, tree):
+        return datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M') - timedelta(hours=7)
 
     def _get_items(self, tree):
         strings = tree.xpath("//p[text()='наименование товара (реквизиты)']/ancestor::div[@class='row'][1]/following-sibling::div[position() >= 1 and position() <= 5]/div[contains(@class, 'text-right')]/p/text()")
@@ -98,19 +107,75 @@ class _PlatformaOfdOperatorReceiptRetriever:
         return tree.xpath("//p[text()='%s']/ancestor::div[@class='row'][1]//div[contains(@class, 'text-right')]/p%s" % (first_column_text, '/b' if is_bold else ''))[0].text
 
 
+class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):
+
+    def get_receipt(self, **kwargs):
+        params = kwargs.get("fiscal_sign"), kwargs.get("total_sum")
+        if not all(params):
+            raise _NotEnoughParameters()
+        response = requests.get("http://receipt.taxcom.ru/v01/show?fp=%s&s=%s" % params)
+        if response.status_code != HTTPStatus.OK:
+            raise Exception("server response was %s (%s)" % (response.status_code, response.content))
+        return self._parse_html(response.content)
+
+    def _parse_html(self, html):
+        tree = etree.XML(html, etree.HTMLParser())
+        if not tree.xpath("//h1[@id='receipt_title']"):
+            return None
+        return {
+            'fiscal_drive_number': self._get_second_column_text(tree, "Зав.№ ФН"),
+            'fiscal_document_number': self._get_second_column_text(tree, "№ ФД"),
+            'fiscal_sign': self._get_second_column_text(tree, "ФПД"),
+            'seller_name': self._get_seller_name(tree),
+            'seller_individual_number': self._get_seller_individual_name(tree),
+            'created': self._get_created(tree),
+            'items': tuple(self._get_items(tree))
+        }
+
+    def _get_seller_name(self, tree):
+        return tree.xpath("(//div[@class='receipt_report']//span)[1]")[0].text.strip()
+
+    def _get_seller_individual_name(self, tree):
+        return tree.xpath("(//div[@class='receipt_report']//span)[2]")[0].text.strip()
+
+    def _get_created(self, tree):
+        return datetime.strptime(tree.xpath("//span[text()='Приход']/parent::td/following-sibling::td[1]//span[2]")[0].text, '%d.%m.%Y %H:%M') - timedelta(hours=7)
+
+    def _get_items(self, tree):
+        strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
+        for i in range(0, len(strings) - 6, 9):
+            yield {
+                'name': strings[i],
+                'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(",000") else strings[i + 1].replace(",", "."),
+                'price': strings[i + 2],
+                'total': strings[i + 3]
+            }
+
+    def _get_second_column_text(self, tree, first_column_text):
+        return tree.xpath("//td[text()='%s']/following-sibling::td[1]/span" % first_column_text)[0].text.strip()
+
+
 class _OperatorReceiptRetriever(ReceiptRetriever):
 
     _retrievers = (
         _PlatformaOfdOperatorReceiptRetriever(),
+        _TaxcomOperatorReceiptRetriever(),
     )
 
-    def get_receipt(self, *args):
+    def get_receipt(self, **kwargs):
         for retriever in self._retrievers:
-            data = retriever.get_receipt(*args)
-            if data:
-                logger.debug("Receipt found via %s", retriever)
-                return data
+            try:
+                data = retriever.get_receipt(**kwargs)
+                if data:
+                    logger.debug("Receipt found via %s", retriever)
+                    return data
+            except _NotEnoughParameters:
+                pass
         raise _OperatorNotSupportedException()
+
+
+class _NotEnoughParameters(Exception):
+    pass
 
 
 class _OperatorNotSupportedException(Exception):
@@ -122,11 +187,11 @@ class _FallbackReceiptRetriever(ReceiptRetriever):
     _default_retriever = _DefaultReceiptRetriever()
     _operator_retriever = _OperatorReceiptRetriever()
 
-    def get_receipt(self, *args):
+    def get_receipt(self, **kwargs):
         try:
-            return self._operator_retriever.get_receipt(*args)
+            return self._operator_retriever.get_receipt(**kwargs)
         except _OperatorNotSupportedException:
-            return self._default_retriever.get_receipt(*args)
+            return self._default_retriever.get_receipt(**kwargs)
 
 
 def get_receipt_retriever():

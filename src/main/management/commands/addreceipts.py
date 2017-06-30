@@ -32,8 +32,11 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 self._set_task_status(task.id, AddReceiptTask.STATUS_INCOMPLETE)
-                data = self._receipt_retriever.get_receipt(task.fiscal_drive_number, task.fiscal_document_number, task.fiscal_sign)
-                logger.debug('Receipt JSON is %s', data)
+                data = self._receipt_retriever.get_receipt(fiscal_drive_number=task.fiscal_drive_number,
+                                                           fiscal_document_number=task.fiscal_document_number,
+                                                           fiscal_sign=task.fiscal_sign,
+                                                           total_sum=task.total_sum)
+                logger.debug('Receipt data is %s', data)
                 receipt = self._save_receipt(data, task.buyer)
                 self._set_task_status(task.id, AddReceiptTask.STATUS_COMPLETE)
                 logger.info("Task complete, receipt ID is %s", receipt.id)
@@ -44,7 +47,7 @@ class Command(BaseCommand):
         logger.debug("Storing receipt into database")
         seller = Seller.objects.get_or_create(individual_number=data['seller_individual_number'], defaults={'name': data['seller_name']})[0]
         receipt = Receipt.objects.create(seller=seller, buyer=user,
-                                         created=datetime.strptime(data['created'], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone(timedelta(hours=4))).astimezone(timezone.utc),
+                                         created=data['created'],
                                          fiscal_drive_number=data['fiscal_drive_number'],
                                          fiscal_document_number=data['fiscal_document_number'],
                                          fiscal_sign=data['fiscal_sign'])
