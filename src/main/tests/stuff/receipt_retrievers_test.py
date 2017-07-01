@@ -12,8 +12,8 @@ def _get_file_content(name):
 
 class PlatformaOfdOperatorReceiptRetrieverTest(TestCase):
 
-    def test_parse_html_if_receipt_found(self):
-        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found.html'))
+    def test_parse_html_if_receipt_found_with_barcodes(self):
+        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_barcodes.html'))
         self.assertDictEqual(result, {
             'fiscal_drive_number': '8710000100036875',
             'fiscal_document_number': '82783',
@@ -28,6 +28,18 @@ class PlatformaOfdOperatorReceiptRetrieverTest(TestCase):
                 {'barcode': '368170', 'name': 'Салат из спаржи, 1уп/150 гр/СП', 'total': '69.90', 'price': '69.90', 'quantity': '1'},
                 {'barcode': '343650', 'name': 'Шницель куриный,капуста тушена', 'total': '79.90', 'price': '79.90', 'quantity': '1'}
             ),
+        })
+
+    def test_parse_html_if_receipt_found_with_no_barcodes(self):
+        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_no_barcodes.html'))
+        self.assertDictEqual(result, {
+            'fiscal_drive_number': '8710000100816354',
+            'fiscal_document_number': '1539',
+            'fiscal_sign': '2964112708',
+            'seller_name': 'ООО "Хитэк-Сибирь"',
+            'seller_individual_number': '5406358004',
+            'created': datetime(2017, 6, 30, 12, 32),
+            'items': ({'price': '279.00', 'total': '279.00', 'name': '1. KAP-590  Флюид для поврежденных кончиков волос "Treatment", 6', 'quantity': '1'},)
         })
 
     def test_parse_html_if_receipt_not_found(self):
