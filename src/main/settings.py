@@ -165,4 +165,6 @@ LOGGING = {
     },
 }
 
+GOOGLE_ANALYTICS_ID = None
+
 from .settings_local import *

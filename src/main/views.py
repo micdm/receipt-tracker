@@ -22,11 +22,20 @@ from main.models import *
 logger = getLogger(__name__)
 
 
+def _get_context(context=None):
+    if not context:
+        context = {}
+    context.update({
+        'google_analytics_id': settings.GOOGLE_ANALYTICS_ID if not settings.DEBUG else None
+    })
+    return context
+
+
 class IndexView(View):
 
     def get(self, request):
         receipt_items = ReceiptItem.objects.order_by('-receipt__created')[:50]
-        return render(request, 'index.html', self._get_context(receipt_items))
+        return render(request, 'index.html', _get_context(self._get_context(receipt_items)))
 
     def _get_context(self, receipt_items):
         return {
@@ -43,11 +52,11 @@ class AddReceiptView(View):
 
     @method_decorator(login_required)
     def get(self, request):
-        return render(request, 'add_receipt.html', {
+        return render(request, 'add_receipt.html', _get_context({
             'qr_form': forms.QrForm(),
             'manual_input_form': forms.ManualInputForm(),
             'photo_form': forms.PhotoForm()
-        })
+        }))
 
     @method_decorator(login_required)
     def post(self, request):
@@ -89,11 +98,11 @@ class AddReceiptView(View):
                     photo_form.add_error(None, 'Не удалось добавить чек: %s' % e)
         else:
             photo_form = forms.PhotoForm()
-        return render(request, 'add_receipt.html', {
+        return render(request, 'add_receipt.html', _get_context({
             'qr_form': qr_form,
             'manual_input_form': manual_input_form,
             'photo_form': photo_form
-        })
+        }))
 
     def _get_receipt_params_from_qr(self, text):
         try:
@@ -125,7 +134,7 @@ class AddReceiptView(View):
 class ReceiptAddedView(View):
 
     def get(self, request):
-        return render(request, 'receipt_added.html')
+        return render(request, 'receipt_added.html', _get_context())
 
 
 class ProductView(View):
@@ -134,7 +143,7 @@ class ProductView(View):
         product = Product.objects.get(id=product_id)
         if not product:
             return HttpResponseNotFound()
-        return render(request, 'product.html', self._get_context(product, forms.AddAliasForm(product_id)))
+        return render(request, 'product.html', _get_context(self._get_context(product, forms.AddAliasForm(product_id))))
 
     def post(self, request, product_id):
         product = Product.objects.get(id=product_id)
@@ -159,7 +168,7 @@ class ProductView(View):
                     return HttpResponseRedirect(reverse('product', kwargs={'product_id': product_id}))
                 except Exception as e:
                     logger.debug('Cannot remove alias: %s', e)
-        return render(request, 'product.html', self._get_context(product, add_form))
+        return render(request, 'product.html', _get_context(self._get_context(product, add_form)))
 
     def _add_alias(self, product_id, alias_id):
         with transaction.atomic():
