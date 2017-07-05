@@ -143,7 +143,8 @@ class ProductView(View):
         product = Product.objects.get(id=product_id)
         if not product:
             return HttpResponseNotFound()
-        return render(request, 'product.html', _get_context(self._get_context(product, forms.AddAliasForm(product_id))))
+        return render(request, 'product.html', _get_context(self._get_context(product, product.foodproduct if hasattr(product, 'foodproduct') else None,
+                                                                              forms.AddAliasForm(product_id))))
 
     def post(self, request, product_id):
         product = Product.objects.get(id=product_id)
@@ -168,7 +169,8 @@ class ProductView(View):
                     return HttpResponseRedirect(reverse('product', kwargs={'product_id': product_id}))
                 except Exception as e:
                     logger.debug('Cannot remove alias: %s', e)
-        return render(request, 'product.html', _get_context(self._get_context(product, add_form)))
+        return render(request, 'product.html', _get_context(self._get_context(product, product.foodproduct if hasattr(product, 'foodproduct') else None,
+                                                                              add_form)))
 
     def _add_alias(self, product_id, alias_id):
         with transaction.atomic():
@@ -182,10 +184,11 @@ class ProductView(View):
             product = Product.objects.create()
             ProductAlias.objects.filter(id=alias_id).update(product=product)
 
-    def _get_context(self, product, add_alias_form):
+    def _get_context(self, product, food_product, add_alias_form):
         return {
             'product': {
                 'id': product.id,
+                'name': product.get_name(),
                 'aliases': [{
                     'id': alias.id,
                     'seller': alias.seller.get_name(),
@@ -196,7 +199,14 @@ class ProductView(View):
                     'seller': item.receipt.seller.get_name(),
                     'created': item.receipt.created,
                     'value': item.price,
-                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')]
+                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')],
+                'food': {
+                    'calories': food_product.calories,
+                    'protein': food_product.protein,
+                    'fat': food_product.fat,
+                    'carbohydrate': food_product.carbohydrate,
+                    'weight': food_product.weight
+                } if food_product else None
             },
             'add_alias_form': add_alias_form
         }

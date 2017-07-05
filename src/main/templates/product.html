@@ -3,6 +3,18 @@
 {% block title %}Продукт{% endblock %}
 
 {% block body %}
+<h2>{{ product.name }}</h2>
+{% if product.food %}
+    {% with product.food as food %}
+    На сто грамм:
+    <ul>
+        <li>Белки: {{ food.protein }}</li>
+        <li>Жиры: {{ food.fat }}</li>
+        <li>Углеводы: {{ food.carbohydrate }}</li>
+        <li>Калорийность: {{ food.calories }}</li>
+    </ul>
+    {% endwith %}
+{% endif %}
 <h2>Известен как</h2>
 <table class="table">
     {% for alias in product.aliases %}

@@ -17,10 +17,27 @@ class Seller(models.Model):
 
 class Product(models.Model):
 
-    barcode = models.PositiveIntegerField(null=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    barcode = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.productalias_set.all()[0])
+        return self.get_name()
+
+    def get_name(self):
+        return self.name if self.name else str(self.productalias_set.all()[0])
+
+
+class FoodProduct(models.Model):
+
+    product = models.OneToOneField(Product)
+    calories = models.PositiveIntegerField(help_text='На сто грамм')
+    protein = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    fat = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    carbohydrate = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    weight = models.PositiveSmallIntegerField(help_text='В граммах')
+
+    def __str__(self):
+        return '%s (%sг)' % (str(self.product), self.weight)
 
 
 class ProductAlias(models.Model):
