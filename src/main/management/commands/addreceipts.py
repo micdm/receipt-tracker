@@ -45,7 +45,7 @@ class Command(BaseCommand):
 
     def _save_receipt(self, data, user):
         logger.debug("Storing receipt into database")
-        seller = Seller.objects.get_or_create(individual_number=data['seller_individual_number'], defaults={'name': data['seller_name']})[0]
+        seller = Seller.objects.get_or_create(individual_number=data['seller_individual_number'], defaults={'original_name': data['seller_name']})[0]
         receipt = Receipt.objects.create(seller=seller, buyer=user,
                                          created=data['created'],
                                          fiscal_drive_number=data['fiscal_drive_number'],
