@@ -12,26 +12,8 @@ def _get_file_content(name):
 
 class PlatformaOfdOperatorReceiptRetrieverTest(TestCase):
 
-    def test_parse_html_if_receipt_found_with_barcodes(self):
-        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_barcodes.html'))
-        self.assertDictEqual(result, {
-            'fiscal_drive_number': '8710000100036875',
-            'fiscal_document_number': '82783',
-            'fiscal_sign': '3006261485',
-            'seller_name': 'ООО "Спар-Томск"',
-            'seller_individual_number': '7017326645',
-            'created': datetime(2017, 6, 27, 5, 50),
-            'items': (
-                {'barcode': '79044', 'name': 'Сок Сады Придонья 1л мультифру', 'total': '74.90', 'price': '74.90', 'quantity': '1'},
-                {'barcode': '357915', 'name': 'Батончик мюсли Фитоидея яблоко', 'total': '17.70', 'price': '17.70', 'quantity': '1'},
-                {'barcode': '357916', 'name': 'Батончик мюсли Фитоидея черник', 'total': '35.40', 'price': '17.70', 'quantity': '2'},
-                {'barcode': '368170', 'name': 'Салат из спаржи, 1уп/150 гр/СП', 'total': '69.90', 'price': '69.90', 'quantity': '1'},
-                {'barcode': '343650', 'name': 'Шницель куриный,капуста тушена', 'total': '79.90', 'price': '79.90', 'quantity': '1'}
-            ),
-        })
-
-    def test_parse_html_if_receipt_found_with_no_barcodes(self):
-        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_no_barcodes.html'))
+    def test_parse_html_if_receipt_found(self):
+        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found.html'))
         self.assertDictEqual(result, {
             'fiscal_drive_number': '8710000100816354',
             'fiscal_document_number': '1539',

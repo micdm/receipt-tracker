@@ -52,14 +52,10 @@ class Command(BaseCommand):
                                          fiscal_document_number=data['fiscal_document_number'],
                                          fiscal_sign=data['fiscal_sign'])
         for item in data['items']:
-            if 'barcode' in item:
-                product = Product.objects.get_or_create(barcode=item['barcode'])[0]
-                product_alias = ProductAlias.objects.get_or_create(seller=seller, product=product, name=item['name'])[0]
-            else:
-                product_alias = ProductAlias.objects.filter(seller=seller, name=item['name']).first()
-                if not product_alias:
-                    product = Product.objects.create()
-                    product_alias = ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
+            product_alias = ProductAlias.objects.filter(seller=seller, name=item['name']).first()
+            if not product_alias:
+                product = Product.objects.create()
+                product_alias = ProductAlias.objects.create(seller=seller, product=product, name=item['name'])
             ReceiptItem.objects.create(receipt=receipt, product_alias=product_alias,
                                        price=Decimal(item['price']),
                                        quantity=Decimal(item['quantity']),

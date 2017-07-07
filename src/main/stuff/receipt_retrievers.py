@@ -55,7 +55,6 @@ class _DefaultReceiptRetriever(ReceiptRetriever):
             'seller_individual_number': receipt['userInn'],
             'created': datetime.strptime(receipt['dateTime'], '%Y-%m-%dT%H:%M:%S') - timedelta(hours=4),
             'items': tuple({
-                'barcode': item.get('barcode'),
                 'name': item['name'],
                 'price': str(item['price'] / 100),
                 'quantity': str(item['quantity']),
@@ -86,24 +85,13 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
             'seller_name': self._get_second_column_text(tree, "наименование пользователя"),
             'seller_individual_number': self._get_second_column_text(tree, "ИНН пользователя", True),
             'created': self._get_created(tree),
-            'items': tuple(self._get_items_with_barcodes(tree) if tree.xpath("//p[text()='штриховой код EAN13']") else self._get_items_with_no_barcodes(tree))
+            'items': tuple(self._get_items(tree))
         }
 
     def _get_created(self, tree):
         return datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M') - timedelta(hours=7)
 
-    def _get_items_with_barcodes(self, tree):
-        strings = tree.xpath("//p[text()='наименование товара (реквизиты)']/ancestor::div[@class='row'][1]/following-sibling::div[position() >= 1 and position() <= 5]/div[contains(@class, 'text-right')]/p/text()")
-        for i in range(0, len(strings), 5):
-            yield {
-                'name': strings[i],
-                'barcode': strings[i + 1],
-                'price': strings[i + 2],
-                'quantity': strings[i + 3],
-                'total': strings[i + 4]
-            }
-
-    def _get_items_with_no_barcodes(self, tree):
+    def _get_items(self, tree):
         strings = tree.xpath("//p[text()='наименование товара (реквизиты)']/ancestor::div[@class='row'][1]/following-sibling::div[position() >= 1 and position() <= 4]/div[contains(@class, 'text-right')]/p/text()")
         for i in range(0, len(strings), 4):
             yield {
