@@ -46,7 +46,7 @@ class AddAliasForm(forms.Form):
     def __init__(self, product_id, *args, **kwargs):
         super(AddAliasForm, self).__init__(*args, **kwargs)
         self.fields['product_alias'].queryset = ProductAlias.objects.exclude(product=product_id).order_by('name')
-        self.fields['product_alias'].label_from_instance = lambda alias: '%s (%s, %s)' % (alias.name, alias.seller.get_name(), alias.receiptitem_set.all().order_by('-receipt__created').first().price)
+        self.fields['product_alias'].label_from_instance = lambda alias: '%s (%s, %s)' % (alias.name, alias.seller.name, alias.receiptitem_set.all().order_by('-receipt__created').first().price)
 
 
 class RemoveAliasForm(forms.Form):

@@ -5,26 +5,28 @@ from django.db import models
 class Seller(models.Model):
 
     individual_number = models.PositiveIntegerField(unique=True)
-    name = models.CharField(max_length=100)
-    short_name = models.CharField(max_length=100, null=True)
+    original_name = models.CharField(max_length=100)
+    user_friendly_name = models.CharField(max_length=100, null=True)
+
+    @property
+    def name(self):
+        return self.user_friendly_name or self.original_name
 
     def __str__(self):
         return self.name
 
-    def get_name(self):
-        return self.short_name or self.name
-
 
 class Product(models.Model):
 
-    name = models.CharField(max_length=100, null=True, blank=True)
+    user_friendly_name = models.CharField(max_length=100, null=True, blank=True)
     barcode = models.PositiveIntegerField(null=True, blank=True)
 
-    def __str__(self):
-        return self.get_name()
+    @property
+    def name(self):
+        return self.user_friendly_name or str(self.productalias_set.all()[0])
 
-    def get_name(self):
-        return self.name if self.name else str(self.productalias_set.all()[0])
+    def __str__(self):
+        return self.name
 
 
 class FoodProduct(models.Model):
