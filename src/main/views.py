@@ -41,6 +41,7 @@ class IndexView(View):
         return {
             'items': [{
                 'product_id': item.product_alias.product.id,
+                'is_product_checked': item.product_alias.product.is_checked,
                 'name': item.product_alias.name,
                 'seller': item.receipt.seller.name,
                 'price': item.price
@@ -189,6 +190,8 @@ class ProductView(View):
             'product': {
                 'id': product.id,
                 'name': product.name,
+                'is_food': product.is_food,
+                'is_non_food': product.is_non_food,
                 'aliases': [{
                     'id': alias.id,
                     'seller': alias.seller.name,

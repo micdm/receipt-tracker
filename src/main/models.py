@@ -25,6 +25,18 @@ class Product(models.Model):
     def name(self):
         return self.user_friendly_name or str(self.productalias_set.all()[0])
 
+    @property
+    def is_food(self):
+        return hasattr(self, 'foodproduct')
+
+    @property
+    def is_non_food(self):
+        return hasattr(self, 'nonfoodproduct')
+
+    @property
+    def is_checked(self):
+        return self.is_food or self.is_non_food
+
     def __str__(self):
         return self.name
 
@@ -40,6 +52,14 @@ class FoodProduct(models.Model):
 
     def __str__(self):
         return '%s (%sг)' % (str(self.product), self.weight)
+
+
+class NonFoodProduct(models.Model):
+
+    product = models.OneToOneField(Product)
+
+    def __str__(self):
+        return str(self.product)
 
 
 class ProductAlias(models.Model):

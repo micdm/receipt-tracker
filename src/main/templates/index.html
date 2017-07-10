@@ -16,7 +16,7 @@
         {% for item in items %}
         <tr>
             <td>{{ item.seller }}</td>
-            <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a></td>
+            <td><a href="{% url 'product' item.product_id %}">{{ item.name }}{% if not item.is_product_checked %} (?){% endif %}</a></td>
             <td class="text-right">{{ item.price }}</td>
         </tr>
         {% endfor %}

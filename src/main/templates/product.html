@@ -3,7 +3,11 @@
 {% block title %}Продукт{% endblock %}
 
 {% block body %}
-<h2>{{ product.name }}</h2>
+<h2>
+    {{ product.name }}
+    {% if product.is_food %}<br/><small>Съедобное</small>{% endif %}
+    {% if product.is_non_food %}<br/><small>Несъедобное</small>{% endif %}
+</h2>
 {% if product.food %}
     {% with product.food as food %}
     На сто грамм:
