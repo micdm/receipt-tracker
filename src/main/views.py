@@ -41,7 +41,7 @@ class IndexView(View):
         return {
             'items': [{
                 'product_id': item.product_alias.product.id,
-                'is_product_checked': item.product_alias.product.is_checked,
+                'is_product_checked': item.is_product_checked,
                 'name': item.product_alias.name,
                 'seller': item.receipt.seller.name,
                 'price': item.price
@@ -192,19 +192,19 @@ class ProductView(View):
                 'name': product.name,
                 'is_food': product.is_food,
                 'is_non_food': product.is_non_food,
-                'aliases': [{
+                'aliases': tuple({
                     'id': alias.id,
                     'seller': alias.seller.name,
                     'name': alias.name,
                     'remove_form': forms.RemoveAliasForm(initial={'product_alias_id': alias.id}),
-                } for alias in product.productalias_set.all()],
-                'prices': [{
+                } for alias in product.productalias_set.all()),
+                'prices': ({
                     'seller': item.receipt.seller.name,
                     'created': item.receipt.created,
                     'value': item.price,
-                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')],
+                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')),
                 'food': {
-                    'calories': food_product.calories,
+                    'calories': food_product.calories / 1000,
                     'protein': food_product.protein,
                     'fat': food_product.fat,
                     'carbohydrate': food_product.carbohydrate,
@@ -212,4 +212,49 @@ class ProductView(View):
                 } if food_product else None
             },
             'add_alias_form': add_alias_form
+        }
+
+
+class ReportView(View):
+
+    @method_decorator(login_required)
+    def get(self, request):
+        receipts = Receipt.objects\
+            .filter(buyer=request.user, created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))\
+            .order_by('-created')
+        return render(request, 'report.html', _get_context(self._get_context(receipts)))
+
+    def _get_context(self, receipts):
+        return {
+            'receipts': tuple(map(self._get_receipt_info, receipts)),
+            'food': {
+                'protein': sum(receipt.protein for receipt in receipts),
+                'fat': sum(receipt.fat for receipt in receipts),
+                'carbohydrate': sum(receipt.carbohydrate for receipt in receipts),
+                'calories': sum(receipt.calories for receipt in receipts) / 1000,
+            },
+            'non_checked_count': sum(receipt.non_checked_product_count for receipt in receipts)
+        }
+
+    def _get_receipt_info(self, receipt):
+        items = receipt.receiptitem_set.all().order_by('product_alias__name')
+        return {
+            'id': receipt.id,
+            'seller_name': receipt.seller.name,
+            'created': receipt.created,
+            'items': [{
+                'product_id': item.product_alias.product.id,
+                'name': item.product_alias.product.name,
+                'price': item.price,
+                'quantity': item.quantity,
+                'total': item.total,
+                'is_product_checked': item.is_product_checked
+            } for item in items],
+            'food': {
+                'protein': receipt.protein,
+                'fat': receipt.fat,
+                'carbohydrate': receipt.carbohydrate,
+                'calories': receipt.calories / 1000
+            },
+            'non_checked_count': receipt.non_checked_product_count
         }

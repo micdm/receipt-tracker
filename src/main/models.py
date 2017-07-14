@@ -87,6 +87,33 @@ class Receipt(models.Model):
     def __str__(self):
         return '%s@%s' % (self.seller, self.created)
 
+    @property
+    def items(self):
+        return self.receiptitem_set.all()
+
+    @property
+    def protein(self):
+        return self._get_food_value('protein')
+
+    @property
+    def fat(self):
+        return self._get_food_value('fat')
+
+    @property
+    def carbohydrate(self):
+        return self._get_food_value('carbohydrate')
+
+    @property
+    def calories(self):
+        return self._get_food_value('calories')
+
+    def _get_food_value(self, name):
+        return sum(filter(bool, (getattr(item, name) for item in self.items)))
+
+    @property
+    def non_checked_product_count(self):
+        return sum(not item.is_product_checked for item in self.items)
+
 
 class ReceiptItem(models.Model):
 
@@ -98,6 +125,32 @@ class ReceiptItem(models.Model):
 
     def __str__(self):
         return '%s x%s по %s' % (self.product_alias, self.quantity, self.price)
+
+    @property
+    def protein(self):
+        return self._get_food_value('protein')
+
+    @property
+    def fat(self):
+        return self._get_food_value('fat')
+
+    @property
+    def carbohydrate(self):
+        return self._get_food_value('carbohydrate')
+
+    @property
+    def calories(self):
+        return self._get_food_value('calories')
+
+    def _get_food_value(self, name):
+        product = self.product_alias.product
+        if not product.is_food:
+            return None
+        return getattr(product.foodproduct, name) * product.foodproduct.weight / 100
+
+    @property
+    def is_product_checked(self):
+        return self.product_alias.product.is_checked
 
 
 class AddReceiptTask(models.Model):
