@@ -25,23 +25,9 @@
     <tr>
         <td>{{ alias.seller }}</td>
         <td class="text-right">{{ alias.name }}</td>
-        <td class="col-md-1">
-            <form method="post">
-                {% csrf_token %}
-                {{ alias.remove_form }}
-                <input type="hidden" name="remove" value="1"/>
-                <input type="submit" value="Удалить" class="btn btn-danger"/>
-            </form>
-        </td>
     </tr>
     {% endfor %}
 </table>
-<form method="post" class="form-inline">
-    {% csrf_token %}
-    {{ add_alias_form }}
-    <input type="hidden" name="add" value="1"/>
-    <input type="submit" value="Добавить синоним" class="btn btn-primary"/>
-</form>
 <h2>История цен</h2>
 <table class="table">
     {% for price in product.prices %}
