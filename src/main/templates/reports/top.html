@@ -4,13 +4,39 @@
 
 {% block body %}
 <h2>Топ продуктов за последние 30 дней</h2>
-<h5>Самое потребляемое</h5>
+<h4 style="margin-top: 50px">Топ по калориям</h4>
 <table class="table">
-    {% for product in most_consumed %}
+    {% for product in top_by_calories %}
         <tr>
-            <td>{{ product.name }}</td>
-            <td class="col-md-1">{{ product.quantity }}</td>
-            <td class="col-md-1 text-right">{{ product.weight|default_if_none:'&mdash;' }}</td>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td class="col-md-2 text-right">{{ product.value }} ккал</td>
+        </tr>
+    {% endfor %}
+</table>
+<h4 style="margin-top: 50px">Топ по расходам</h4>
+<table class="table">
+    {% for product in top_by_total %}
+        <tr>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td class="col-md-2 text-right">{{ product.value }} руб</td>
+        </tr>
+    {% endfor %}
+</table>
+<h4 style="margin-top: 50px">Топ по количеству</h4>
+<table class="table">
+    {% for product in top_by_quantity %}
+        <tr>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td class="col-md-2 text-right">{{ product.value }} шт</td>
+        </tr>
+    {% endfor %}
+</table>
+<h4 style="margin-top: 50px">Топ по массе</h4>
+<table class="table">
+    {% for product in top_by_weight %}
+        <tr>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td class="col-md-2 text-right">{{ product.value }} г</td>
         </tr>
     {% endfor %}
 </table>

@@ -221,25 +221,66 @@ class ValueReportView(View):
 
 class TopReportView(View):
 
+    TOP_SIZE = 10
+
     @method_decorator(login_required)
     def get(self, request):
-        most_consumed = self._get_most_consumed()
-        return render(request, 'reports/top.html', _get_context(self._get_context(most_consumed)))
+        items = ReceiptItem.objects.filter(receipt__buyer=request.user,
+                                           receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
+        return render(request, 'reports/top.html', _get_context(self._get_context(self._get_top_by_quantity(items), self._get_top_by_calories(items),
+                                                                                  self._get_top_by_total(items), self._get_top_by_weight(items))))
 
-    def _get_most_consumed(self):
+    def _get_top_by_quantity(self, items):
         products = {}
-        for item in ReceiptItem.objects.filter(receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow())):
+        for item in items:
             product = item.product_alias.product
             if product not in products:
                 products[product] = 0
             products[product] += item.quantity
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:10]
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
 
-    def _get_context(self, most_consumed):
-        return {
-            'most_consumed': tuple({
+    def _get_top_by_calories(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if not product.is_food:
+                continue
+            if product not in products:
+                products[product] = 0
+            products[product] += item.calories / 1000
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_top_by_total(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if product not in products:
+                products[product] = 0
+            products[product] += item.total
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_top_by_weight(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if not product.is_food:
+                continue
+            if product not in products:
+                products[product] = 0
+            products[product] += item.quantity * product.foodproduct.weight
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_context(self, top_by_quantity, top_by_calories, top_by_total, top_by_weight):
+        def get_top(products):
+            return tuple({
+                'id': product.id,
                 'name': product.name,
-                'quantity': quantity,
-                'weight': product.foodproduct.weight * quantity if product.is_food else None,
-            } for product, quantity in most_consumed)
+                'is_checked': product.is_checked,
+                'value': value,
+            } for product, value in products)
+        return {
+            'top_by_quantity': get_top(top_by_quantity),
+            'top_by_calories': get_top(top_by_calories),
+            'top_by_total': get_top(top_by_total),
+            'top_by_weight': get_top(top_by_weight)
         }
