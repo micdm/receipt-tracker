@@ -174,14 +174,14 @@ class ProductView(View):
         }
 
 
-class ReportView(View):
+class ValueReportView(View):
 
     @method_decorator(login_required)
     def get(self, request):
         receipts = Receipt.objects\
             .filter(buyer=request.user, created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))\
             .order_by('-created')
-        return render(request, 'report.html', _get_context(self._get_context(receipts)))
+        return render(request, 'reports/value.html', _get_context(self._get_context(receipts)))
 
     def _get_context(self, receipts):
         return {
@@ -216,4 +216,30 @@ class ReportView(View):
                 'calories': receipt.calories / 1000
             },
             'non_checked_count': receipt.non_checked_product_count
+        }
+
+
+class TopReportView(View):
+
+    @method_decorator(login_required)
+    def get(self, request):
+        most_consumed = self._get_most_consumed()
+        return render(request, 'reports/top.html', _get_context(self._get_context(most_consumed)))
+
+    def _get_most_consumed(self):
+        products = {}
+        for item in ReceiptItem.objects.filter(receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow())):
+            product = item.product_alias.product
+            if product not in products:
+                products[product] = 0
+            products[product] += item.quantity
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:10]
+
+    def _get_context(self, most_consumed):
+        return {
+            'most_consumed': tuple({
+                'name': product.name,
+                'quantity': quantity,
+                'weight': product.foodproduct.weight * quantity if product.is_food else None,
+            } for product, quantity in most_consumed)
         }

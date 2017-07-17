@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Отчёт за последние 30 дней{% endblock %}
+{% block title %}Отчёт о пищевой ценности за последние 30 дней{% endblock %}
 
 {% block body %}
-<h2>Отчёт за последние 30 дней</h2>
+<h2>Отчёт о пищевой ценности за последние 30 дней</h2>
 <h5>Суммарная пищевая ценность {% if non_checked_count %}<span class="text-warning">({{ non_checked_count }} не заполнено)</span>{% endif %}</h5>
 <ul>
     <li>Белки: {{ food.protein }} г</li>

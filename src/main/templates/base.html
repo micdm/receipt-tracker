@@ -12,16 +12,21 @@
         <div class="col-md-2">
             <h4><a href="{% url 'index' %}">На главную</a></h4>
         </div>
-        <div class="col-md-10 text-right">
-            {% if user.is_anonymous %}
-            <a href="{% url 'social:begin' 'vk-oauth2' %}" class="btn btn-primary">Войти через VK</a>
-            {% else %}
-            Привет, <strong style="margin-right: 20px">{{ user }}</strong>
-            <a href="{% url 'add_receipt' %}" class="btn btn-primary">Добавить чек</a>
-            <a href="{% url 'report' %}" class="btn btn-link">Отчёт</a>
-            <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
-            {% endif %}
-        </div>
+        {% if user.is_anonymous %}
+            <div class="col-md-10 text-right">
+                <a href="{% url 'social:begin' 'vk-oauth2' %}" class="btn btn-primary">Войти через VK</a>
+            </div>
+        {% else %}
+            <div class="col-md-5">
+                <a href="{% url 'value_report' %}" class="btn btn-link">Пищевая ценность</a>
+                <a href="{% url 'top_report' %}" class="btn btn-link">Топ</a>
+            </div>
+            <div class="col-md-5 text-right">
+                Привет, <strong style="margin-right: 20px">{{ user }}</strong>
+                <a href="{% url 'add_receipt' %}" class="btn btn-primary">Добавить чек</a>
+                <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
+            </div>
+        {% endif %}
     </div>
     <div class="container">
     {% block body %}{% endblock %}
