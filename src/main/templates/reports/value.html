@@ -11,6 +11,12 @@
     <li>Углеводы: {{ food.carbohydrate|floatformat:0 }} г</li>
     <li>Калорийность: {{ food.calories|floatformat:0 }} ккал</li>
 </ul>
+<h4 style="margin-top: 50px">Должно быть в идеале (пропорция 1:1:4)</h4>
+<ul>
+    <li>Белки: {{ food_should_be.protein|floatformat:0 }} г</li>
+    <li>Жиры: {{ food_should_be.fat|floatformat:0 }} г</li>
+    <li>Углеводы: {{ food_should_be.carbohydrate|floatformat:0 }} г</li>
+</ul>
 {% for receipt in receipts %}
     <h4 style="margin-top: 50px">Чек №{{ receipt.id }} от {{ receipt.created|date:'Y-m-d H:i' }} ({{ receipt.seller_name }})</h4>
     <table class="table">

@@ -192,6 +192,7 @@ class ValueReportView(View):
                 'carbohydrate': sum(receipt.carbohydrate for receipt in receipts),
                 'calories': sum(receipt.calories for receipt in receipts) / 1000,
             },
+            'food_should_be': self._get_food_should_be(receipts),
             'non_checked_count': sum(receipt.non_checked_product_count for receipt in receipts)
         }
 
@@ -216,6 +217,14 @@ class ValueReportView(View):
                 'calories': receipt.calories / 1000
             },
             'non_checked_count': receipt.non_checked_product_count
+        }
+
+    def _get_food_should_be(self, receipts):
+        part = sum(receipt.protein + receipt.fat + receipt.carbohydrate for receipt in receipts) / 6
+        return {
+            'protein': part,
+            'fat': part,
+            'carbohydrate': part * 4,
         }
 
 
