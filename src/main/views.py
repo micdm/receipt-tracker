@@ -237,7 +237,8 @@ class TopReportView(View):
         items = ReceiptItem.objects.filter(receipt__buyer=request.user,
                                            receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
         return render(request, 'reports/top.html', _get_context(
-            self._get_context(self._get_top_by_calories(items), self._get_top_by_total(items), self._get_top_by_weight(items))
+            self._get_context(self._get_top_by_calories(items), self._get_top_by_total(items), self._get_top_by_weight(items),
+                              self._get_top_by_protein(items), self._get_top_by_fat(items), self._get_top_by_carbohydrate(items))
         ))
 
     def _get_top_by_calories(self, items):
@@ -271,7 +272,40 @@ class TopReportView(View):
             products[product] += item.quantity * product.foodproduct.weight / 1000
         return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
 
-    def _get_context(self, top_by_calories, top_by_total, top_by_weight):
+    def _get_top_by_protein(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if not product.is_food:
+                continue
+            if product not in products:
+                products[product] = 0
+            products[product] += item.protein / 1000
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_top_by_fat(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if not product.is_food:
+                continue
+            if product not in products:
+                products[product] = 0
+            products[product] += item.fat / 1000
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_top_by_carbohydrate(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            if not product.is_food:
+                continue
+            if product not in products:
+                products[product] = 0
+            products[product] += item.carbohydrate / 1000
+        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+
+    def _get_context(self, top_by_calories, top_by_total, top_by_weight, top_by_protein, top_by_fat, top_by_carbohydrate):
         def get_top(products):
             return tuple({
                 'id': product.id,
@@ -282,5 +316,8 @@ class TopReportView(View):
         return {
             'top_by_calories': get_top(top_by_calories),
             'top_by_total': get_top(top_by_total),
-            'top_by_weight': get_top(top_by_weight)
+            'top_by_weight': get_top(top_by_weight),
+            'top_by_protein': get_top(top_by_protein),
+            'top_by_fat': get_top(top_by_fat),
+            'top_by_carbohydrate': get_top(top_by_carbohydrate),
         }
