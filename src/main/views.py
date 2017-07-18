@@ -168,7 +168,7 @@ class ProductView(View):
                     'protein': food_product.protein,
                     'fat': food_product.fat,
                     'carbohydrate': food_product.carbohydrate,
-                    'weight': food_product.weight
+                    'weight': food_product.weight / 1000
                 } if food_product else None
             }
         }
@@ -227,17 +227,9 @@ class TopReportView(View):
     def get(self, request):
         items = ReceiptItem.objects.filter(receipt__buyer=request.user,
                                            receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
-        return render(request, 'reports/top.html', _get_context(self._get_context(self._get_top_by_quantity(items), self._get_top_by_calories(items),
-                                                                                  self._get_top_by_total(items), self._get_top_by_weight(items))))
-
-    def _get_top_by_quantity(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if product not in products:
-                products[product] = 0
-            products[product] += item.quantity
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
+        return render(request, 'reports/top.html', _get_context(
+            self._get_context(self._get_top_by_calories(items), self._get_top_by_total(items), self._get_top_by_weight(items))
+        ))
 
     def _get_top_by_calories(self, items):
         products = {}
@@ -267,10 +259,10 @@ class TopReportView(View):
                 continue
             if product not in products:
                 products[product] = 0
-            products[product] += item.quantity * product.foodproduct.weight
+            products[product] += item.quantity * product.foodproduct.weight / 1000
         return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
 
-    def _get_context(self, top_by_quantity, top_by_calories, top_by_total, top_by_weight):
+    def _get_context(self, top_by_calories, top_by_total, top_by_weight):
         def get_top(products):
             return tuple({
                 'id': product.id,
@@ -279,7 +271,6 @@ class TopReportView(View):
                 'value': value,
             } for product, value in products)
         return {
-            'top_by_quantity': get_top(top_by_quantity),
             'top_by_calories': get_top(top_by_calories),
             'top_by_total': get_top(top_by_total),
             'top_by_weight': get_top(top_by_weight)

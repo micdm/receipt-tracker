@@ -4,12 +4,12 @@
 
 {% block body %}
 <h2>Отчёт о пищевой ценности за последние 30 дней</h2>
-<h5>Суммарная пищевая ценность {% if non_checked_count %}<span class="text-warning">({{ non_checked_count }} не заполнено)</span>{% endif %}</h5>
+<h4 style="margin-top: 50px">Суммарная пищевая ценность {% if non_checked_count %}<span class="text-warning">({{ non_checked_count }} не заполнено)</span>{% endif %}</h4>
 <ul>
-    <li>Белки: {{ food.protein }} г</li>
-    <li>Жиры: {{ food.fat }} г</li>
-    <li>Углеводы: {{ food.carbohydrate }} г</li>
-    <li>Калорийность: {{ food.calories }} ккал</li>
+    <li>Белки: {{ food.protein|floatformat:0 }} г</li>
+    <li>Жиры: {{ food.fat|floatformat:0 }} г</li>
+    <li>Углеводы: {{ food.carbohydrate|floatformat:0 }} г</li>
+    <li>Калорийность: {{ food.calories|floatformat:0 }} ккал</li>
 </ul>
 {% for receipt in receipts %}
     <h4 style="margin-top: 50px">Чек №{{ receipt.id }} от {{ receipt.created|date:'Y-m-d H:i' }} ({{ receipt.seller_name }})</h4>
@@ -17,17 +17,17 @@
         {% for item in receipt.items %}
             <tr>
                 <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a> {% if not item.is_product_checked %}<span class="text-warning">?</span>{% endif %}</td>
-                <td class="col-md-2">{% if item.quantity != 1 %}{{ item.quantity }} x {{ item.price }}{% endif %}</td>
-                <td class="col-md-1 text-right">{{ item.total }}</td>
+                <td class="col-md-2">{% if item.quantity != 1 %}{{ item.quantity }} x {{ item.price }} ₽{% endif %}</td>
+                <td class="col-md-1 text-right">{{ item.total }} ₽</td>
             </tr>
         {% endfor %}
     </table>
     <h5>Пищевая ценность {% if receipt.non_checked_count %}<span class="text-warning">({{ receipt.non_checked_count }} не заполнено)</span>{% endif %}</h5>
     <ul>
-        <li>Белки: {{ receipt.food.protein }} г</li>
-        <li>Жиры: {{ receipt.food.fat }} г</li>
-        <li>Углеводы: {{ receipt.food.carbohydrate }} г</li>
-        <li>Калорийность: {{ receipt.food.calories }} ккал</li>
+        <li>Белки: {{ receipt.food.protein|floatformat }} г</li>
+        <li>Жиры: {{ receipt.food.fat|floatformat }} г</li>
+        <li>Углеводы: {{ receipt.food.carbohydrate|floatformat }} г</li>
+        <li>Калорийность: {{ receipt.food.calories|floatformat }} ккал</li>
     </ul>
 {% empty %}
     Чеков пока не обнаружено.

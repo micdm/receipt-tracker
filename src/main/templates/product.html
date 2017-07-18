@@ -5,21 +5,21 @@
 {% block body %}
 <h2>
     {{ product.name }}
-    {% if product.is_food %}<br/><small>Съедобное</small>{% endif %}
+    {% if product.is_food %}<br/><small>Съедобное, {{ product.food.weight|floatformat:3 }} кг</small>{% endif %}
     {% if product.is_non_food %}<br/><small>Несъедобное</small>{% endif %}
 </h2>
 {% if product.food %}
+    <h4 style="margin-top: 50px">На сто грамм</h4>
     {% with product.food as food %}
-    На сто грамм:
     <ul>
-        <li>Белки: {{ food.protein }} г</li>
-        <li>Жиры: {{ food.fat }} г</li>
-        <li>Углеводы: {{ food.carbohydrate }} г</li>
-        <li>Калорийность: {{ food.calories }} ккал</li>
+        <li>Белки: {{ food.protein|floatformat  }} г</li>
+        <li>Жиры: {{ food.fat|floatformat }} г</li>
+        <li>Углеводы: {{ food.carbohydrate|floatformat }} г</li>
+        <li>Калорийность: {{ food.calories|floatformat }} ккал</li>
     </ul>
     {% endwith %}
 {% endif %}
-<h2>Известен как</h2>
+<h4 style="margin-top: 50px">Известен как</h4>
 <table class="table">
     {% for alias in product.aliases %}
     <tr>
@@ -28,13 +28,13 @@
     </tr>
     {% endfor %}
 </table>
-<h2>История цен</h2>
+<h4 style="margin-top: 50px">История цен</h4>
 <table class="table">
     {% for price in product.prices %}
     <tr>
         <td>{{ price.seller }}</td>
         <td>{{ price.created|date:'Y-m-d H:i' }}</td>
-        <td class="text-right">{{ price.value }}</td>
+        <td class="text-right">{{ price.value }} ₽</td>
     </tr>
     {% endfor %}
 </table>
