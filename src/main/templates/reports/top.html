@@ -58,4 +58,13 @@
         </tr>
     {% endfor %}
 </table>
+<h4 style="margin-top: 50px">Самое энергоэффективное</h4>
+<table class="table">
+    {% for product in top_by_effectivity %}
+        <tr>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td class="col-md-2 text-right">{{ product.value|floatformat:0 }} ккал / ₽</td>
+        </tr>
+    {% endfor %}
+</table>
 {% endblock %}
