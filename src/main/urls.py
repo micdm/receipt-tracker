@@ -14,4 +14,5 @@ urlpatterns = (
     url(r'^product/(?P<product_id>\d+)$', views.ProductView.as_view(), name='product'),
     url(r'^reports/value$', views.ValueReportView.as_view(), name='value_report'),
     url(r'^reports/top', views.TopReportView.as_view(), name='top_report'),
+    url(r'^reports/summary', views.SummaryView.as_view(), name='summary_report'),
 )

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Сводка за последние 30 дней{% endblock %}
+
+{% block body %}
+<h2>Сводка за последние 30 дней</h2>
+{% if not products %}
+    <p>Ничего не найдено.</p>
+{% else %}
+    <table class="table">
+        <tr>
+            <th>Продукт</th>
+            {% for key, column in columns %}
+                <th {% if forloop.last %}class="text-right"{% endif %}><a href="?sort={{ key }}">{{ column }}{% if sorting_key == key %}*{% endif %}</a></th>
+            {% endfor %}
+        </tr>
+        {% for product in products %}
+            <tr>
+                <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+                {% if product.is_food %}
+                    <td>{{ product.protein|floatformat:0 }} г</td>
+                    <td>{{ product.fat|floatformat:0 }} г</td>
+                    <td>{{ product.carbohydrate|floatformat:0 }} г</td>
+                    <td>{{ product.calories|floatformat:0 }} ккал</td>
+                {% else %}
+                    <td>&mdash;</td>
+                    <td>&mdash;</td>
+                    <td>&mdash;</td>
+                    <td>&mdash;</td>
+                {% endif %}
+                <td class="text-right">{{ product.total|floatformat:0 }} ₽</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% endblock %}

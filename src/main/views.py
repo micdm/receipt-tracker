@@ -1,12 +1,8 @@
-import decimal
 import re
 import subprocess
-import time
-from datetime import datetime, timezone, timedelta
-from http import HTTPStatus
+from datetime import datetime, timedelta
 from logging import getLogger
 
-import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -320,4 +316,80 @@ class TopReportView(View):
             'top_by_protein': get_top(top_by_protein),
             'top_by_fat': get_top(top_by_fat),
             'top_by_carbohydrate': get_top(top_by_carbohydrate),
+        }
+
+
+class SummaryView(View):
+
+    class _FoodStats:
+
+        def __init__(self):
+            self.protein = 0
+            self.fat = 0
+            self.carbohydrate = 0
+            self.calories = 0
+            self.total = 0
+
+        def add(self, item):
+            self.protein += item.protein
+            self.fat += item.fat
+            self.carbohydrate += item.carbohydrate
+            self.calories += item.calories / 1000
+            self.total += item.total
+
+    class _NonFoodStats:
+
+        def __init__(self):
+            self.protein = None
+            self.fat = None
+            self.carbohydrate = None
+            self.calories = None
+            self.total = 0
+
+        def add(self, item):
+            self.total += item.total
+
+    COLUMNS = (
+        ('protein', 'Белки'),
+        ('fat', 'Жиры'),
+        ('carbohydrate', 'Углеводы'),
+        ('calories', 'Калорийность'),
+        ('total', 'Стоимость'),
+    )
+
+    def get(self, request):
+        items = ReceiptItem.objects.filter(receipt__buyer=request.user,
+                                           receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
+        products = self._get_summary(items)
+        sorting_key = request.GET.get('sort')
+        if sorting_key in (item[0] for item in self.COLUMNS):
+            products = sorted(products, key=lambda pair: getattr(pair[1], sorting_key) or 0, reverse=True)
+        return render(request, 'reports/summary.html', _get_context(self._get_context(products, sorting_key)))
+
+    def _get_summary(self, items):
+        products = {}
+        for item in items:
+            product = item.product_alias.product
+            stats = products.get(product)
+            if stats is None:
+                stats = self._FoodStats() if product.is_food else self._NonFoodStats()
+                products[product] = stats
+            stats.add(item)
+        return tuple(products.items())
+
+    def _get_context(self, products, sorting_key):
+        return {
+            'columns': self.COLUMNS,
+            'sorting_key': sorting_key,
+            'products': tuple({
+                'id': product.id,
+                'name': product.name,
+                'is_food': product.is_food,
+                'is_checked': product.is_checked,
+                'protein': stats.protein,
+                'fat': stats.fat,
+                'carbohydrate': stats.carbohydrate,
+                'calories': stats.calories,
+                'total': stats.total
+            } for product, stats in products)
         }
