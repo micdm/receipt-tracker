@@ -82,7 +82,7 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
             'fiscal_drive_number': self._get_second_column_text(tree, "заводской номер фискального накопителя", True),
             'fiscal_document_number': self._get_second_column_text(tree, "порядковый номер фискального документа", True),
             'fiscal_sign': self._get_second_column_text(tree, "фискальный признак документа", True),
-            'seller_name': self._get_second_column_text(tree, "наименование пользователя"),
+            'seller_name': self._get_second_column_text(tree, "наименование организации"),
             'seller_individual_number': self._get_second_column_text(tree, "ИНН пользователя", True),
             'created': self._get_created(tree),
             'items': tuple(self._get_items_with_barcodes(tree) if tree.xpath("//p[text()='штриховой код EAN13']") else self._get_items_with_no_barcodes(tree))
