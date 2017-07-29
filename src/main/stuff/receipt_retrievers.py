@@ -79,40 +79,30 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
         if not tree.xpath("//span[contains(@class, 'glyphicon-download-alt')]"):
             return None
         return {
-            'fiscal_drive_number': self._get_second_column_text(tree, "заводской номер фискального накопителя", True),
-            'fiscal_document_number': self._get_second_column_text(tree, "порядковый номер фискального документа", True),
-            'fiscal_sign': self._get_second_column_text(tree, "фискальный признак документа", True),
-            'seller_name': self._get_second_column_text(tree, "наименование организации"),
-            'seller_individual_number': self._get_second_column_text(tree, "ИНН пользователя", True),
+            'fiscal_drive_number': self._get_second_column_text(tree, "Зав. № ФН"),
+            'fiscal_document_number': self._get_second_column_text(tree, "№ ФД"),
+            'fiscal_sign': self._get_second_column_text(tree, "№ ФПД"),
+            'seller_name': tree.xpath("//div[@class='check-top']/div")[0].text,
+            'seller_individual_number': tree.xpath("//div[@class='check-top']/div")[2].text[4:],
             'created': self._get_created(tree),
-            'items': tuple(self._get_items_with_barcodes(tree) if tree.xpath("//p[text()='штриховой код EAN13']") else self._get_items_with_no_barcodes(tree))
+            'items': tuple(self._get_items(tree))
         }
 
     def _get_created(self, tree):
-        return datetime.strptime(self._get_second_column_text(tree, "дата, время", True), '%d.%m.%Y %H:%M') - timedelta(hours=7)
+        return datetime.strptime(self._get_second_column_text(tree, "Приход"), '%d.%m.%Y %H:%M') - timedelta(hours=4)
 
-    def _get_items_with_barcodes(self, tree):
-        strings = tree.xpath("//p[text()='наименование товара (реквизиты)']/ancestor::div[@class='row'][1]/following-sibling::div[position() >= 1 and position() <= 5]/div[contains(@class, 'text-right')]/p/text()")
-        for i in range(0, len(strings), 5):
+    def _get_items(self, tree):
+        strings = tree.xpath("//div[@class='check-section'][2]//div[contains(@class, 'check-col')]/text()")
+        for i in range(0, len(strings), 6):
             yield {
                 'name': strings[i],
-                'price': strings[i + 2],
-                'quantity': strings[i + 3],
-                'total': strings[i + 4]
-            }
-
-    def _get_items_with_no_barcodes(self, tree):
-        strings = tree.xpath("//p[text()='наименование товара (реквизиты)']/ancestor::div[@class='row'][1]/following-sibling::div[position() >= 1 and position() <= 4]/div[contains(@class, 'text-right')]/p/text()")
-        for i in range(0, len(strings), 4):
-            yield {
-                'name': strings[i],
-                'price': strings[i + 1],
-                'quantity': strings[i + 2],
+                'price': strings[i + 1].split(' х ')[1],
+                'quantity': strings[i + 1].split(' х ')[0],
                 'total': strings[i + 3]
             }
 
-    def _get_second_column_text(self, tree, first_column_text, is_bold=False):
-        return tree.xpath("//p[text()='%s']/ancestor::div[@class='row'][1]//div[contains(@class, 'text-right')]/p%s" % (first_column_text, '/b' if is_bold else ''))[0].text
+    def _get_second_column_text(self, tree, first_column_text):
+        return tree.xpath("//div[text()='%s']/ancestor::div[@class='check-row'][1]/div[contains(@class, 'check-col-right')]" % first_column_text)[0].text
 
 
 class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):

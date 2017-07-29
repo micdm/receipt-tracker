@@ -12,34 +12,22 @@ def _get_file_content(name):
 
 class PlatformaOfdOperatorReceiptRetrieverTest(TestCase):
 
-    def test_parse_html_if_receipt_found_with_barcodes(self):
-        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_barcodes.html'))
+    def test_parse_html_if_receipt_found(self):
+        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found.html'))
         self.assertDictEqual(result, {
-            'fiscal_drive_number': '8710000100036875',
-            'fiscal_document_number': '82783',
-            'fiscal_sign': '3006261485',
+            'fiscal_drive_number': '8710000100688395',
+            'fiscal_document_number': '29324',
+            'fiscal_sign': '2745981095',
             'seller_name': 'ООО "Спар-Томск"',
             'seller_individual_number': '7017326645',
-            'created': datetime(2017, 6, 27, 5, 50),
+            'created': datetime(2017, 7, 29, 11, 19),
             'items': (
-                {'name': 'Сок Сады Придонья 1л мультифру', 'total': '74.90', 'price': '74.90', 'quantity': '1'},
-                {'name': 'Батончик мюсли Фитоидея яблоко', 'total': '17.70', 'price': '17.70', 'quantity': '1'},
-                {'name': 'Батончик мюсли Фитоидея черник', 'total': '35.40', 'price': '17.70', 'quantity': '2'},
-                {'name': 'Салат из спаржи, 1уп/150 гр/СП', 'total': '69.90', 'price': '69.90', 'quantity': '1'},
-                {'name': 'Шницель куриный,капуста тушена', 'total': '79.90', 'price': '79.90', 'quantity': '1'}
-            ),
-        })
-
-    def test_parse_html_if_receipt_found_with_no_barcodes(self):
-        result = _PlatformaOfdOperatorReceiptRetriever()._parse_html(_get_file_content('platforma_ofd_receipt_found_with_no_barcodes.html'))
-        self.assertDictEqual(result, {
-            'fiscal_drive_number': '8710000100816354',
-            'fiscal_document_number': '1539',
-            'fiscal_sign': '2964112708',
-            'seller_name': 'ООО "Хитэк-Сибирь"',
-            'seller_individual_number': '5406358004',
-            'created': datetime(2017, 6, 30, 12, 32),
-            'items': ({'price': '279.00', 'total': '279.00', 'name': '1. KAP-590  Флюид для поврежденных кончиков волос "Treatment", 6', 'quantity': '1'},)
+                {'price': '43.60', 'total': '130.80', 'quantity': '3', 'name': 'Мороженое Пломбир на йогурте к'},
+                {'price': '16.70', 'total': '16.70', 'quantity': '1', 'name': 'Приправа ТРАПЕЗА Лавровый лист'},
+                {'price': '75.80', 'total': '75.80', 'quantity': '1', 'name': 'Квас ЖИТНИЦА 1,5л Деревенский'},
+                {'price': '26.90', 'total': '26.90', 'quantity': '1', 'name': 'Хлеб Бородинский 400г/Лама'},
+                {'price': '30.70', 'total': '30.70', 'quantity': '1', 'name': 'Сухарики Не только Для своих Б'},
+            )
         })
 
     def test_parse_html_if_receipt_not_found(self):
