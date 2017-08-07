@@ -40,20 +40,26 @@ class TaxcomOperatorReceiptRetrieverTest(TestCase):
     def test_parse_html_if_receipt_found(self):
         result = _TaxcomOperatorReceiptRetriever()._parse_html(_get_file_content('taxcom_receipt_found.html'))
         self.assertDictEqual(result, {
-            'fiscal_drive_number': '8710000100547789',
-            'fiscal_document_number': '2601',
-            'fiscal_sign': '1759143434',
+            'fiscal_drive_number': '8710000100547729',
+            'fiscal_document_number': '55102',
+            'fiscal_sign': '3848832309',
             'seller_name': 'ООО "Лента"',
             'seller_individual_number': '7814148471',
-            'created': datetime(2017, 6, 23, 13, 39),
+            'created': datetime(2017, 8, 6, 13, 8),
             'items': (
-                {'total': '937.80', 'quantity': '20', 'price': '46.89', 'name': 'Пиво HEINEKEN 4,8% 0.5L ст'},
-                {'total': '6.49', 'quantity': '1', 'price': '6.49', 'name': 'Пакет ЛЕНТА майка 12кг'},
-                {'total': '1289.00', 'quantity': '1', 'price': '1289.00', 'name': 'Коньяк СТАРЕЙШИНА Российский 5лет 1L'},
-                {'total': '699.98', 'quantity': '2', 'price': '349.99', 'name': 'ВиноLaFermeDeCerraiМуск.бел.п/сл.Фр.0.75'},
-                {'total': '1319.99', 'quantity': '1', 'price': '1319.99', 'name': 'Текила JOSE CUERVO Хосе Куэр Сильвер 0.7'},
-                {'total': '30.94', 'quantity': '0.238', 'price': '129.99', 'name': 'Чеснок вес 1кг'},
-                {'total': '60.30', 'quantity': '0.331', 'price': '182.17', 'name': 'Пирог Лента с луком и яйцом вес'}
+                {'total': '3.19', 'name': 'Пакет ЛЕНТА майка 9кг', 'quantity': '1', 'price': '3.19'},
+                {'total': '79.29', 'name': 'Мыло DURU Soft sens календула 90гх4', 'quantity': '1', 'price': '79.29'},
+                {'total': '129.99', 'name': 'З/паста SPLAT 100мл', 'quantity': '1', 'price': '129.99'},
+                {'total': '21.49', 'name': 'Т/мыло DURU Soft sens грейпфрут 80г', 'quantity': '1', 'price': '21.49'},
+                {'total': '427.07', 'name': 'П/ф Свинина окорок премиум б/к охл. вес', 'quantity': '1.188', 'price': '359.49'},
+                {'total': '112.18', 'name': 'Конф КРАСНЫЙ ОКТЯБРЬ Мишка косол.вес.1кг', 'quantity': '0.142', 'price': '789.99'},
+                {'total': '64.32', 'name': 'Конфеты TWIX Минис Имбирное печенье вес', 'quantity': '0.134', 'price': '479.99'},
+                {'total': '26.59', 'name': "Мыло DURU Nature'S Treasures Мед Минд90г", 'quantity': '1', 'price': '26.59'},
+                {'total': '17.29', 'name': 'Салфетки 365 ДНЕЙ 24*24см 1-сл. 100шт', 'quantity': '1', 'price': '17.29'},
+                {'total': '21.49', 'name': 'Палочки НИКИТКА Кукурузные сливочные 80г', 'quantity': '1', 'price': '21.49'},
+                {'total': '98.99', 'name': 'Кондиц-р д/белья LENOR Минд Масло д/ч 1л', 'quantity': '1', 'price': '98.99'},
+                {'total': '22.13', 'name': 'Лук репчатый новый урожай вес 1кг', 'quantity': '0.472', 'price': '46.89'},
+                {'total': '17.98', 'name': 'Томаты вес 1 кг', 'quantity': '0.316', 'price': '56.89'},
             )
         })
 

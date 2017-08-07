@@ -151,7 +151,7 @@ class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):
 
     def _get_items(self, tree):
         strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
-        for i in range(0, len(strings) - 6, 9):
+        for i in range(0, len(strings) - 8, 9):
             yield {
                 'name': strings[i],
                 'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(",000") else strings[i + 1].replace(",", "."),
