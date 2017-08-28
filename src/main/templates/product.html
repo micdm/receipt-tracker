@@ -47,4 +47,12 @@
         </tr>
     {% endfor %}
 </table>
+{% if edit.is_allowed %}
+    <h4 class="block">Редактирование</h4>
+    <form action="{% url 'product' product.id %}" method="post">
+        {% csrf_token %}
+        {{ edit.barcode_form.as_p }}
+        <input type="submit" value="Проверить" class="btn btn-primary"/>
+    </form>
+{% endif %}
 {% endblock %}

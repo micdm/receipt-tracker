@@ -6,7 +6,7 @@ from logging import getLogger
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
 from django.utils.decorators import method_decorator
@@ -158,13 +158,14 @@ class ProductView(View):
         product = Product.objects.get(id=product_id)
         if not product:
             return HttpResponseNotFound()
-        return render(request, 'product.html', _get_context(self._get_context(product, product.foodproduct if hasattr(product, 'foodproduct') else None)))
+        return render(request, 'product.html', _get_context(self._get_context(request.user, product, getattr(product, 'foodproduct', None))))
 
-    def _get_context(self, product, food_product):
+    def _get_context(self, user, product, food_product, barcode_form=None):
         return {
             'product': {
                 'id': product.id,
                 'name': product.name,
+                'barcode': product.barcode,
                 'is_food': product.is_food,
                 'is_non_food': product.is_non_food,
                 'aliases': tuple({
@@ -190,8 +191,34 @@ class ProductView(View):
                         'carbohydrate': food_product.total_carbohydrate
                     }
                 } if food_product else None
+            },
+            'edit': {
+                'is_allowed': self._is_edit_allowed(user, product),
+                'barcode_form': barcode_form or forms.BarcodeForm(initial={'barcode': product.barcode})
             }
         }
+
+    def _is_edit_allowed(self, user, product):
+        return not user.is_anonymous and ReceiptItem.objects.filter(product_alias__product=product, receipt__buyer=user).exists()
+
+    @method_decorator(login_required)
+    def post(self, request, product_id):
+        product = Product.objects.get(id=product_id)
+        if not product:
+            return HttpResponseNotFound()
+        if not self._is_edit_allowed(request.user, product):
+            return HttpResponseForbidden()
+        barcode_form = forms.BarcodeForm(request.POST)
+        if barcode_form.is_valid():
+            with transaction.atomic():
+                original_product = Product.objects.filter(barcode=barcode_form.cleaned_data['barcode']).first()
+                if original_product:
+                    ProductAlias.objects.filter(product=product).update(product=original_product)
+                    product.delete()
+                    return HttpResponseRedirect(reverse('product', args=(original_product.id,)))
+                else:
+                    barcode_form.add_error(None, 'Штрихкод не найден')
+        return render(request, 'product.html', _get_context(self._get_context(request.user, product, getattr(product, 'foodproduct', None), barcode_form)))
 
 
 class ValueReportView(View):
