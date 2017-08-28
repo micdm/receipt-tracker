@@ -134,6 +134,24 @@ class ReceiptAddedView(View):
         return render(request, 'receipt_added.html', _get_context())
 
 
+class ProductsView(View):
+
+    def get(self, request):
+        products = sorted(Product.objects.all(), key=lambda product: product.last_buy, reverse=True)
+        return render(request, 'products.html', _get_context(self._get_context(products)))
+
+    def _get_context(self, products):
+        return {
+            'products': tuple({
+                'id': product.id,
+                'name': product.name,
+                'is_checked': product.is_checked,
+                'last_buy': product.last_buy,
+                'last_price': product.last_price
+            } for product in products)
+        }
+
+
 class ProductView(View):
 
     def get(self, request, product_id):
@@ -164,7 +182,13 @@ class ProductView(View):
                     'protein': food_product.protein,
                     'fat': food_product.fat,
                     'carbohydrate': food_product.carbohydrate,
-                    'weight': food_product.weight / 1000
+                    'weight': food_product.weight / 1000,
+                    'total': {
+                        'calories': food_product.total_calories / 1000,
+                        'protein': food_product.total_protein,
+                        'fat': food_product.total_fat,
+                        'carbohydrate': food_product.total_carbohydrate
+                    }
                 } if food_product else None
             }
         }

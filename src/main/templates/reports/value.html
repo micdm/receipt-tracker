@@ -4,22 +4,22 @@
 
 {% block body %}
 <h2>Отчёт о пищевой ценности за последние 30 дней</h2>
-<h4 style="margin-top: 50px">Суммарная пищевая ценность {% if non_checked_count %}<span class="text-warning">({{ non_checked_count }} не заполнено)</span>{% endif %}</h4>
+<h4 class="block">Суммарная пищевая ценность {% if non_checked_count %}<span class="text-warning">({{ non_checked_count }} не заполнено)</span>{% endif %}</h4>
 <ul>
     <li>Белки: {{ food.protein|floatformat:0 }} г</li>
     <li>Жиры: {{ food.fat|floatformat:0 }} г</li>
     <li>Углеводы: {{ food.carbohydrate|floatformat:0 }} г</li>
     <li>Калорийность: {{ food.calories|floatformat:0 }} ккал</li>
 </ul>
-<h4 style="margin-top: 50px">Должно быть в идеале (пропорция 1:1:4)</h4>
+<h4 class="block">Должно быть в идеале (пропорция 1:1:4)</h4>
 <ul>
     <li>Белки: {{ food_should_be.protein|floatformat:0 }} г</li>
     <li>Жиры: {{ food_should_be.fat|floatformat:0 }} г</li>
     <li>Углеводы: {{ food_should_be.carbohydrate|floatformat:0 }} г</li>
 </ul>
 {% for receipt in receipts %}
-    <h4 style="margin-top: 50px">Чек №{{ receipt.id }} от {{ receipt.created|date:'Y-m-d H:i' }} ({{ receipt.seller_name }})</h4>
-    <table class="table">
+    <h4 class="block">Чек №{{ receipt.id }} от {{ receipt.created|date:'Y-m-d H:i' }} ({{ receipt.seller_name }})</h4>
+    <table class="table table-striped">
         {% for item in receipt.items %}
             <tr>
                 <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a> {% if not item.is_product_checked %}<span class="text-warning">?</span>{% endif %}</td>

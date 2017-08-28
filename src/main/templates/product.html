@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Продукт{% endblock %}
+{% block title %}{{ product.name }}{% endblock %}
 
 {% block body %}
 <h2>
@@ -9,33 +9,42 @@
     {% if product.is_non_food %}<br/><small>Несъедобное</small>{% endif %}
 </h2>
 {% if product.food %}
-    <h4 style="margin-top: 50px">На сто грамм</h4>
+    <h4 class="block">На сто грамм</h4>
     {% with product.food as food %}
-    <ul>
-        <li>Белки: {{ food.protein|floatformat  }} г</li>
-        <li>Жиры: {{ food.fat|floatformat }} г</li>
-        <li>Углеводы: {{ food.carbohydrate|floatformat }} г</li>
-        <li>Калорийность: {{ food.calories|floatformat }} ккал</li>
-    </ul>
+        <ul>
+            <li>Белки: {{ food.protein|floatformat  }} г</li>
+            <li>Жиры: {{ food.fat|floatformat }} г</li>
+            <li>Углеводы: {{ food.carbohydrate|floatformat }} г</li>
+            <li>Калорийность: {{ food.calories|floatformat }} ккал</li>
+        </ul>
+    {% endwith %}
+    <h4 class="block">Всего</h4>
+    {% with product.food.total as total %}
+        <ul>
+            <li>Белки: {{ total.protein|floatformat  }} г</li>
+            <li>Жиры: {{ total.fat|floatformat }} г</li>
+            <li>Углеводы: {{ total.carbohydrate|floatformat }} г</li>
+            <li>Калорийность: {{ total.calories|floatformat }} ккал</li>
+        </ul>
     {% endwith %}
 {% endif %}
-<h4 style="margin-top: 50px">Известен как</h4>
-<table class="table">
+<h4 class="block">Известен как</h4>
+<table class="table table-striped">
     {% for alias in product.aliases %}
-    <tr>
-        <td>{{ alias.seller }}</td>
-        <td class="text-right">{{ alias.name }}</td>
-    </tr>
+        <tr>
+            <td>{{ alias.seller }}</td>
+            <td class="text-right">{{ alias.name }}</td>
+        </tr>
     {% endfor %}
 </table>
-<h4 style="margin-top: 50px">История цен</h4>
-<table class="table">
+<h4 class="block">История цен</h4>
+<table class="table table-striped">
     {% for price in product.prices %}
-    <tr>
-        <td>{{ price.seller }}</td>
-        <td>{{ price.created|date:'Y-m-d H:i' }}</td>
-        <td class="text-right">{{ price.value }} ₽</td>
-    </tr>
+        <tr>
+            <td>{{ price.seller }}</td>
+            <td>{{ price.created|date:'Y-m-d H:i' }}</td>
+            <td class="text-right">{{ price.value }} ₽</td>
+        </tr>
     {% endfor %}
 </table>
 {% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Все продукты{% endblock %}
+
+{% block body %}
+<h2>Все продукты</h2>
+<table class="table table-striped">
+    <tr>
+        <th>Название</th>
+        <th>Последняя покупка</th>
+        <th class="text-right">Последняя цена</th>
+    </tr>
+    {% for product in products %}
+        <tr>
+            <td><a href="{% url 'product' product.id %}">{{ product.name }}</a> {% if not product.is_checked %}<span class="text-warning">?</span>{% endif %}</td>
+            <td>{{ product.last_buy|date:'Y-m-d H:i' }}</td>
+            <td class="text-right">{{ product.last_price }} ₽</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

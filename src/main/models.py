@@ -37,6 +37,14 @@ class Product(models.Model):
     def is_checked(self):
         return self.is_food or self.is_non_food
 
+    @property
+    def last_buy(self):
+        return Receipt.objects.filter(receiptitem__product_alias__product=self).order_by('-created')[0].created
+
+    @property
+    def last_price(self):
+        return ReceiptItem.objects.filter(product_alias__product=self).order_by('-receipt__created')[0].price
+
     def __str__(self):
         return self.name
 
@@ -49,6 +57,22 @@ class FoodProduct(models.Model):
     fat = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
     carbohydrate = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
     weight = models.PositiveSmallIntegerField(help_text='В граммах')
+
+    @property
+    def total_calories(self):
+        return self.calories * self.weight / 100
+
+    @property
+    def total_protein(self):
+        return self.protein * self.weight / 100
+
+    @property
+    def total_fat(self):
+        return self.fat * self.weight / 100
+
+    @property
+    def total_carbohydrate(self):
+        return self.carbohydrate * self.weight / 100
 
     def __str__(self):
         return '%s (%sг)' % (str(self.product), self.weight)

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Стартовое{% endblock %}
+{% block title %}Главная{% endblock %}
 
 {% block body %}
 <h2>О чём это?</h2>
@@ -11,14 +11,19 @@
 {% endif %}
 <p>Подробнее см. <a href="http://blog.demerzov.ru/archives/460" target="_blank">в заметках</a>.</p>
 {% if items %}
-    <h2>Последнее добавленное</h2>
-    <table class="table">
-        {% for item in items %}
+    <h2 class="block">Последнее добавленное</h2>
+    <table class="table table-striped">
         <tr>
-            <td>{{ item.seller }}</td>
-            <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a> {% if not item.is_product_checked %}<span class="text-warning">?</span>{% endif %}</td>
-            <td class="text-right">{{ item.price }} ₽</td>
+            <th>Магазин</th>
+            <th>Название</th>
+            <th class="text-right">Цена</th>
         </tr>
+        {% for item in items %}
+            <tr>
+                <td>{{ item.seller }}</td>
+                <td><a href="{% url 'product' item.product_id %}">{{ item.name }}</a> {% if not item.is_product_checked %}<span class="text-warning">?</span>{% endif %}</td>
+                <td class="text-right">{{ item.price }} ₽</td>
+            </tr>
         {% endfor %}
     </table>
 {% endif %}
