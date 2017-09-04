@@ -85,20 +85,43 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
             'seller_name': tree.xpath("//div[@class='check-top']/div")[0].text,
             'seller_individual_number': tree.xpath("//div[@class='check-top']/div")[2].text[4:],
             'created': self._get_created(tree),
-            'items': tuple(self._get_items(tree))
+            'items': tuple(self._get_items(tree) if self._has_barcodes(tree) else self._get_items_with_no_barcodes(tree))
         }
 
     def _get_created(self, tree):
         return datetime.strptime(self._get_second_column_text(tree, "Приход"), '%d.%m.%Y %H:%M') - timedelta(hours=7)
 
+    def _has_barcodes(self, tree):
+        return tree.xpath('//div[text()="штриховой код EAN13"]')
+
     def _get_items(self, tree):
-        strings = tree.xpath("//div[@class='check-product-name']/ancestor::div[@class='check-section']//div[contains(@class, 'check-col')]/text()")
+        strings = tree.xpath("""
+            //div[@class='check-product-name']
+            /ancestor::div[@class='check-section']
+            //div[contains(@class, 'check-product-name') or contains(@class, 'check-col')]
+            /text()
+        """)
         for i in range(0, len(strings), 8):
             yield {
-                'name': strings[i],
+                'name': strings[i].strip(),
                 'price': strings[i + 1].split(' х ')[1],
                 'quantity': strings[i + 1].split(' х ')[0],
                 'total': strings[i + 5]
+            }
+
+    def _get_items_with_no_barcodes(self, tree):
+        strings = tree.xpath("""
+            //div[@class='check-product-name']
+            /ancestor::div[@class='check-section']
+            //div[contains(@class, 'check-product-name') or contains(@class, 'check-col')]
+            /text()
+        """)
+        for i in range(0, len(strings), 8):
+            yield {
+                'name': strings[i].strip(),
+                'price': strings[i + 1].split(' х ')[1],
+                'quantity': strings[i + 1].split(' х ')[0],
+                'total': strings[i + 3]
             }
 
     def _get_second_column_text(self, tree, first_column_text):
