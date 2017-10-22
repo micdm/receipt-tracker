@@ -6,7 +6,7 @@
         <title>Такском Чек</title>
         <meta name="viewport" content="width=550, target-densitydpi=device-dpi, initial-scale=0.6, maximum-scale=1, user-scalable=yes">
         <meta name="format-detection" content="telephone=no"/>
-    
+        <meta name="robots" content="noindex,nofollow">
         <link href="/Content/css/bundle_css?v=gBE1JyngEBGjJkZAJrpr_lKZcTNXv29e33j6Jqfp7ds1" rel="stylesheet"/>
 
         <link href="/Content/css/fontface.css" rel="stylesheet">
@@ -21,7 +21,6 @@
 
         
         <script src="/Scripts/JsBarcode.all.js"></script>
-
     </head>
     <body>
         <header class="header">
@@ -146,7 +145,7 @@
 					<td class="result" align="right" style="white-space: nowrap"><span style="display:none"><span id="fld_I972E09F89">06.08.2017 20:08</span></span><span id="fld_I3304D483A">06.08.2017 20:08</span></td>
 				</tr>
 				<tr>
-					<td colspan="2" style="padding-left:4px;"><span id="fld_IA9BA96DC9">          г.Томск, пр-кт Мира,30 </span></td>
+					<td colspan="2" style="padding-left:4px;"><span style="display:none"><span id="fld_IA9BA96DC9">          г.Томск, пр-кт Мира,30 </span></span><span id="fld_IACA0D987A">г.Томск,  пр-кт Мира, 30</span></td>
 				</tr>
 				<tr>
 					<td colspan="2" style="white-space: nowrap"></br></td>
@@ -685,9 +684,9 @@
                     </div>
                     
 <form action="/v01/show" class="form" method="post" style="max-width: 350px;"><input id="ReceiptId" name="ReceiptId" type="hidden" value="E3D11D1D-AA93-4500-A98C-C230CE4A8BE9" /><input data-val="true" data-val-required="The Found field is required." id="Found" name="Found" type="hidden" value="True" /><input data-val="true" data-val-maxlength="Слишком длинная строка" data-val-maxlength-max="13" data-val-minlength="Слишком короткая строка" data-val-minlength-min="3" data-val-regex="Допустимы только цифры" data-val-regex-pattern="^\d+" data-val-required="Поле обязательно для заполнения" id="FiscalSign" name="FiscalSign" type="hidden" value="3848832309" /><input data-val="true" data-val-maxlength="Слишком длинная строка" data-val-maxlength-max="10" data-val-regex="Допустимы только цифры" data-val-regex-pattern="^\d+" id="DocumentFiscalNumber" name="DocumentFiscalNumber" type="hidden" value="55102" /><input data-val="true" data-val-date="The field ReceiptDate must be a date." data-val-required="The ReceiptDate field is required." id="ReceiptDate" name="ReceiptDate" type="hidden" value="06.08.2017 20:08:00" />                            <div class="form-group">
-                                <label for="email">Вы можете отправить копию чека на свой email</label>
+                                <label for="email">Вы можете отправить чек на свой email:</label>
                                 <div class="row">
-                                    <input class="form-control-inline  col-xs-12 col-md-8 col-lg-8" id="email" maxlength="255" name="Email" placeholder="Введите email для отправки" style="margin-bottom: 10px;" type="text" value="" />
+                                    <input class="form-control-inline  col-xs-12 col-md-8 col-lg-8" id="email" maxlength="255" name="Email" placeholder="Адрес вашей электронной почты" style="margin-bottom: 10px;" type="text" value="" />
                                     <div class="col-xs-12 col-md-4 col-lg-4">
                                         <button type="submit" class="btn btn-default  btn-send-slip">
                                             Отправить

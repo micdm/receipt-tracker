@@ -131,6 +131,54 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
 
 class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):
 
+    class _ParserV1:
+
+        def get_seller_name(self, tree):
+            return tree.xpath("(//div[@class='receipt_report']//span)[1]")[0].text.strip()
+
+        def get_seller_individual_name(self, tree):
+            return tree.xpath("(//div[@class='receipt_report']//span)[2]")[0].text.strip()
+
+        def get_created(self, tree):
+            return datetime.strptime(tree.xpath("//span[text()='Приход']/parent::td/following-sibling::td[1]//span[2]")[0].text, '%d.%m.%Y %H:%M') - timedelta(hours=7)
+
+        def get_items(self, tree):
+            strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
+            for i in range(0, len(strings) - 8, 9):
+                yield {
+                    'name': strings[i],
+                    'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(",000") else strings[i + 1].replace(",", "."),
+                    'price': strings[i + 2],
+                    'total': strings[i + 3]
+                }
+
+        def get_second_column_text(self, tree, first_column_text):
+            return tree.xpath("//td[text()='%s']/following-sibling::td[1]/span" % first_column_text)[0].text.strip()
+
+    class _ParserV2:
+
+        def get_seller_name(self, tree):
+            return tree.xpath("(//div[@class='receipt_report']//span)[1]")[0].text.strip()
+
+        def get_seller_individual_name(self, tree):
+            return tree.xpath("(//div[@class='receipt_report']//span)[2]")[0].text.strip()
+
+        def get_created(self, tree):
+            return datetime.strptime(tree.xpath("(//div[@class='receipt_report']//span)[9]")[0].text.strip(), '%d.%m.%Y %H:%M') - timedelta(hours=7)
+
+        def get_items(self, tree):
+            strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
+            for i in range(0, len(strings), 10):
+                yield {
+                    'name': strings[i],
+                    'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(".000") else strings[i + 1],
+                    'price': strings[i + 2],
+                    'total': strings[i + 4]
+                }
+
+        def get_second_column_text(self, tree, first_column_text):
+            return tree.xpath("//span[text()='%s']/parent::td/following-sibling::td[1]/span" % first_column_text)[0].text.strip()
+
     def get_receipt(self, **kwargs):
         params = kwargs.get("fiscal_sign"), kwargs.get("total_sum")
         if not all(params):
@@ -144,37 +192,19 @@ class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):
         tree = etree.XML(html, etree.HTMLParser())
         if not tree.xpath("//h1[@id='receipt_title']"):
             return None
+        parser = self._get_parser(tree)
         return {
-            'fiscal_drive_number': self._get_second_column_text(tree, "Зав.№ ФН"),
-            'fiscal_document_number': self._get_second_column_text(tree, "№ ФД"),
-            'fiscal_sign': self._get_second_column_text(tree, "ФПД"),
-            'seller_name': self._get_seller_name(tree),
-            'seller_individual_number': self._get_seller_individual_name(tree),
-            'created': self._get_created(tree),
-            'items': tuple(self._get_items(tree))
+            'fiscal_drive_number': parser.get_second_column_text(tree, "Зав.№ ФН"),
+            'fiscal_document_number': parser.get_second_column_text(tree, "№ ФД"),
+            'fiscal_sign': parser.get_second_column_text(tree, "ФПД"),
+            'seller_name': parser.get_seller_name(tree),
+            'seller_individual_number': parser.get_seller_individual_name(tree),
+            'created': parser.get_created(tree),
+            'items': tuple(parser.get_items(tree))
         }
 
-    def _get_seller_name(self, tree):
-        return tree.xpath("(//div[@class='receipt_report']//span)[1]")[0].text.strip()
-
-    def _get_seller_individual_name(self, tree):
-        return tree.xpath("(//div[@class='receipt_report']//span)[2]")[0].text.strip()
-
-    def _get_created(self, tree):
-        return datetime.strptime(tree.xpath("//span[text()='Приход']/parent::td/following-sibling::td[1]//span[2]")[0].text, '%d.%m.%Y %H:%M') - timedelta(hours=7)
-
-    def _get_items(self, tree):
-        strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
-        for i in range(0, len(strings) - 8, 9):
-            yield {
-                'name': strings[i],
-                'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(",000") else strings[i + 1].replace(",", "."),
-                'price': strings[i + 2],
-                'total': strings[i + 3]
-            }
-
-    def _get_second_column_text(self, tree, first_column_text):
-        return tree.xpath("//td[text()='%s']/following-sibling::td[1]/span" % first_column_text)[0].text.strip()
+    def _get_parser(self, tree):
+        return self._ParserV1() if tree.xpath("//td[text()='№ смены']") else self._ParserV2()
 
 
 class _OperatorReceiptRetriever(ReceiptRetriever):

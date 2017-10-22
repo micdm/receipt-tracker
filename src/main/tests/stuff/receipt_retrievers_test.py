@@ -51,8 +51,8 @@ class PlatformaOfdOperatorReceiptRetrieverTest(TestCase):
 
 class TaxcomOperatorReceiptRetrieverTest(TestCase):
 
-    def test_parse_html_if_receipt_found(self):
-        result = _TaxcomOperatorReceiptRetriever()._parse_html(_get_file_content('taxcom_receipt_found.html'))
+    def test_parse_html_if_receipt_found_v1(self):
+        result = _TaxcomOperatorReceiptRetriever()._parse_html(_get_file_content('taxcom_receipt_found_v1.html'))
         self.assertDictEqual(result, {
             'fiscal_drive_number': '8710000100547729',
             'fiscal_document_number': '55102',
@@ -74,6 +74,33 @@ class TaxcomOperatorReceiptRetrieverTest(TestCase):
                 {'total': '98.99', 'name': 'Кондиц-р д/белья LENOR Минд Масло д/ч 1л', 'quantity': '1', 'price': '98.99'},
                 {'total': '22.13', 'name': 'Лук репчатый новый урожай вес 1кг', 'quantity': '0.472', 'price': '46.89'},
                 {'total': '17.98', 'name': 'Томаты вес 1 кг', 'quantity': '0.316', 'price': '56.89'},
+            )
+        })
+
+    def test_parse_html_if_receipt_found_v2(self):
+        result = _TaxcomOperatorReceiptRetriever()._parse_html(_get_file_content('taxcom_receipt_found_v2.html'))
+        self.assertDictEqual(result, {
+            'fiscal_drive_number': '8710000100548077',
+            'fiscal_document_number': '43119',
+            'fiscal_sign': '1514696382',
+            'seller_name': 'ООО "Лента"',
+            'seller_individual_number': '7814148471',
+            'created': datetime(2017, 10, 21, 12, 25),
+            'items': (
+                {'price': '40.89', 'total': '40.89', 'name': 'Продукт к/м ДЕРЕВ МОЛ яб/б 2,5% п/п 450г', 'quantity': '1'},
+                {'price': '49.99', 'total': '99.98', 'name': 'Фасоль ЛЕНТА белая в томатном соусе 430г', 'quantity': '2'},
+                {'price': '149.99', 'total': '149.99', 'name': 'Паста ЛЕНТА шоколадно-молочная 700г', 'quantity': '1'},
+                {'price': '39.99', 'total': '39.99', 'name': 'Кукуруза ЛЕНТА 425мл', 'quantity': '1'},
+                {'price': '49.99', 'total': '49.99', 'name': 'Оливки 365 ДНЕЙ зеленые б/к 300мл', 'quantity': '1'},
+                {'price': '997.06', 'total': '190.44', 'name': 'Орехи грецкие очищ. 1 сорт вес', 'quantity': '0.191'},
+                {'price': '28.99', 'total': '28.99', 'name': 'Б/салфетки ЛЕНТА Белые 2-х сл.100шт', 'quantity': '1'},
+                {'price': '41.89', 'total': '41.89', 'name': 'Блок д/унит DOMESTOS Хвоя см.гигиен', 'quantity': '1'},
+                {'price': '37.89', 'total': '37.89', 'name': 'Снеки НИКИТКА кукуруз палоч.с сах пуд160', 'quantity': '1'},
+                {'price': '59.99', 'total': '59.99', 'name': 'Чипсы CRUNCHIPS Lorenz Grill паприка100г', 'quantity': '1'},
+                {'price': '7.99', 'total': '7.99', 'name': 'Булочка 365 ДНЕЙ Пышка 70г', 'quantity': '1'},
+                {'price': '34.99', 'total': '34.99', 'name': 'Шоколад ALPEN GOLD Молоч.арахис крекер', 'quantity': '1'},
+                {'price': '39.99', 'total': '39.99', 'name': 'Б/полотенца 365 ДНЕЙ кух. 2-сл.2шт', 'quantity': '1'},
+                {'price': '119.99', 'total': '119.99', 'name': 'Т/бумага FAMILIA Plus Маг цвет 2-сл.12шт', 'quantity': '1'},
             )
         })
 
