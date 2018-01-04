@@ -82,8 +82,8 @@ class _PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):
             'fiscal_drive_number': self._get_second_column_text(tree, "заводской номер фискального накопителя"),
             'fiscal_document_number': self._get_second_column_text(tree, "порядковый номер фискального документа"),
             'fiscal_sign': self._get_second_column_text(tree, "фискальный признак документа"),
-            'seller_name': tree.xpath("//div[@class='check-top']/div")[0].text,
-            'seller_individual_number': tree.xpath("//div[@class='check-top']/div")[2].text[4:],
+            'seller_name': tree.xpath("//div[@class='check-top']/div")[1].text,
+            'seller_individual_number': tree.xpath("//div[@class='check-top']/div")[3].text[4:],
             'created': self._get_created(tree),
             'items': tuple(self._get_items(tree) if self._has_barcodes(tree) else self._get_items_with_no_barcodes(tree))
         }
@@ -168,7 +168,7 @@ class _TaxcomOperatorReceiptRetriever(ReceiptRetriever):
 
         def get_items(self, tree):
             strings = tree.xpath("//table[@class='verticalBlock']//span/text()")
-            for i in range(0, len(strings), 10):
+            for i in range(0, len(strings), 12):
                 yield {
                     'name': strings[i],
                     'quantity': strings[i + 1][:-4] if strings[i + 1].endswith(".000") else strings[i + 1],
