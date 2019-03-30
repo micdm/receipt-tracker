@@ -6,14 +6,14 @@ from logging import getLogger
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from main import forms
-from main.models import *
+from receipt_tracker import forms
+from receipt_tracker.models import *
 
 logger = getLogger(__name__)
 

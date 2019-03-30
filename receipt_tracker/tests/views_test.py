@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from main.views import AddReceiptView
+from receipt_tracker.views import AddReceiptView
 
 
 class AddReceiptViewTest(TestCase):

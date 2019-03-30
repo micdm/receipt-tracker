@@ -1,7 +1,5 @@
 from django import forms
 
-from main.models import ProductAlias
-
 
 class _BootstrapTextarea(forms.Textarea):
 

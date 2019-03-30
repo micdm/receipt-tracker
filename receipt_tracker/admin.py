@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
-from main import models
+
+from receipt_tracker import models
 
 admin.site.register(models.Seller)
 admin.site.register(models.ProductAlias)

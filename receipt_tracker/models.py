@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -51,12 +53,12 @@ class Product(models.Model):
 
 class FoodProduct(models.Model):
 
-    product = models.OneToOneField(Product)
-    calories = models.PositiveIntegerField(help_text='На сто грамм')
-    protein = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
-    fat = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
-    carbohydrate = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
-    weight = models.PositiveSmallIntegerField(help_text='В граммах')
+    product = models.OneToOneField(Product, models.CASCADE)
+    calories: int = models.PositiveIntegerField(help_text='На сто грамм')
+    protein: Decimal = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    fat: Decimal = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    carbohydrate: Decimal = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
+    weight: int = models.PositiveSmallIntegerField(help_text='В граммах')
 
     @property
     def total_calories(self):
@@ -80,7 +82,7 @@ class FoodProduct(models.Model):
 
 class NonFoodProduct(models.Model):
 
-    product = models.OneToOneField(Product)
+    product = models.OneToOneField(Product, models.CASCADE)
 
     def __str__(self):
         return str(self.product)
@@ -88,8 +90,8 @@ class NonFoodProduct(models.Model):
 
 class ProductAlias(models.Model):
 
-    seller = models.ForeignKey(Seller)
-    product = models.ForeignKey(Product)
+    seller = models.ForeignKey(Seller, models.CASCADE)
+    product: Product = models.ForeignKey(Product, models.CASCADE)
     name = models.CharField(max_length=100)
 
     def __str__(self):
@@ -101,8 +103,8 @@ class Receipt(models.Model):
     class Meta:
         unique_together = ('fiscal_drive_number', 'fiscal_document_number', 'fiscal_sign')
 
-    seller = models.ForeignKey(Seller)
-    buyer = models.ForeignKey(get_user_model())
+    seller = models.ForeignKey(Seller, models.CASCADE)
+    buyer = models.ForeignKey(get_user_model(), models.CASCADE)
     created = models.DateTimeField()
     fiscal_drive_number = models.BigIntegerField()
     fiscal_document_number = models.BigIntegerField()
@@ -141,8 +143,8 @@ class Receipt(models.Model):
 
 class ReceiptItem(models.Model):
 
-    receipt = models.ForeignKey(Receipt)
-    product_alias = models.ForeignKey(ProductAlias)
+    receipt = models.ForeignKey(Receipt, models.CASCADE)
+    product_alias: ProductAlias = models.ForeignKey(ProductAlias, models.CASCADE)
     price = models.DecimalField(decimal_places=2, max_digits=10)
     quantity = models.DecimalField(decimal_places=3, max_digits=6)
     total = models.DecimalField(decimal_places=2, max_digits=10)
@@ -196,7 +198,7 @@ class AddReceiptTask(models.Model):
     fiscal_document_number = models.BigIntegerField()
     fiscal_sign = models.BigIntegerField()
     total_sum = models.DecimalField(decimal_places=2, max_digits=10, null=True)
-    buyer = models.ForeignKey(get_user_model())
+    buyer = models.ForeignKey(get_user_model(), models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     status = models.PositiveSmallIntegerField(choices=STATUS_CHOICES, default=STATUS_NEW)
 

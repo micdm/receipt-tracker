@@ -1,9 +1,4 @@
 __pycache__
 .idea/
-.virtualenv/
-conf/
-data/
-log/
-run/
-static/
-settings_local.py
+.coverage
+.env

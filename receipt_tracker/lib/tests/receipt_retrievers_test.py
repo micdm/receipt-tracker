@@ -1,9 +1,10 @@
-from datetime import datetime
 import os.path
+from datetime import datetime
 
 from django.test import TestCase
 
-from main.stuff.receipt_retrievers import _PlatformaOfdOperatorReceiptRetriever, _TaxcomOperatorReceiptRetriever
+from receipt_tracker.lib.receipt_retrievers import _PlatformaOfdOperatorReceiptRetriever, \
+    _TaxcomOperatorReceiptRetriever
 
 
 def _get_file_content(name):
