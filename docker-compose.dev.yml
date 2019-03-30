@@ -1,0 +1,36 @@
+version: '3.3'
+
+services:
+
+  db:
+    image: postgres:alpine
+    volumes:
+      - db:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  backend:
+    image: receipt-tracker
+    ports:
+      - 8000:8000
+    volumes:
+      - static:/opt/receipt-tracker/static
+      - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
+    command: ["./manage.py", "runserver"]
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  tests:
+    image: receipt-tracker:dev
+    volumes:
+      - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+volumes:
+  db:
+  static:

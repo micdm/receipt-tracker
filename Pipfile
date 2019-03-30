@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+gunicorn = "*"
 django = "*"
 django-environ = "*"
 social-auth-app-django = "*"
 psycopg2-binary = "*"
-pillow = "*"
 requests = "*"
 lxml = "*"
 

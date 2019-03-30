@@ -26,13 +26,13 @@
             </div>
         {% else %}
             <div class="col-md-4">
-                <a href="{% url 'value_report' %}" class="btn btn-link">Пищевая ценность</a>
-                <a href="{% url 'top_report' %}" class="btn btn-link">Топ</a>
-                <a href="{% url 'summary_report' %}" class="btn btn-link">Сводка</a>
+                <a href="{% url 'value-report' %}" class="btn btn-link">Пищевая ценность</a>
+                <a href="{% url 'top-report' %}" class="btn btn-link">Топ</a>
+                <a href="{% url 'summary-report' %}" class="btn btn-link">Сводка</a>
             </div>
             <div class="col-md-4 text-right">
                 Привет, <strong style="margin-right: 20px">{{ user }}</strong>
-                <a href="{% url 'add_receipt' %}" class="btn btn-primary">Добавить чек</a>
+                <a href="{% url 'add-receipt' %}" class="btn btn-primary">Добавить чек</a>
                 <a href="{% url 'logout' %}" class="btn btn-danger">Выйти</a>
             </div>
         {% endif %}

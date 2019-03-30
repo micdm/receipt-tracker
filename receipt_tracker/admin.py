@@ -7,7 +7,6 @@ admin.site.register(models.Seller)
 admin.site.register(models.ProductAlias)
 admin.site.register(models.Receipt)
 admin.site.register(models.ReceiptItem)
-admin.site.register(models.AddReceiptTask)
 
 
 def _get_boolean_field(short_description, getter):

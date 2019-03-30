@@ -1,7 +1,7 @@
 import re
-import subprocess
 from datetime import datetime, timedelta
 from logging import getLogger
+from typing import Dict
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -14,6 +14,7 @@ from django.views import View
 
 from receipt_tracker import forms
 from receipt_tracker.models import *
+from receipt_tracker.repositories import product_repository, receipt_item_repository
 
 logger = getLogger(__name__)
 
@@ -27,22 +28,26 @@ def _get_context(context=None):
     return context
 
 
-class IndexView(View):
+def _add_common_context(context: Dict) -> Dict:
+    context.update({
+        'google_analytics_id': settings.GOOGLE_ANALYTICS_ID if not settings.DEBUG else None
+    })
+    return context
 
-    def get(self, request):
-        receipt_items = ReceiptItem.objects.order_by('-receipt__created')[:50]
-        return render(request, 'index.html', _get_context(self._get_context(receipt_items)))
 
-    def _get_context(self, receipt_items):
-        return {
-            'items': [{
-                'product_id': item.product_alias.product.id,
-                'is_product_checked': item.is_product_checked,
-                'name': item.product_alias.name,
-                'seller': item.receipt.seller.name,
-                'price': item.price
-            } for item in receipt_items]
-        }
+def index_view(request):
+    receipt_items = receipt_item_repository.get_last()
+    context = {
+        'items': [{
+            'product_id': item.product_alias.product.id,
+            'is_product_checked': item.is_product_checked,
+            'name': item.product_alias.name,
+            'seller': item.receipt.seller.name,
+            'price': item.price
+        } for item in receipt_items]
+    }
+    context = _add_common_context(context)
+    return render(request, 'index.html', context)
 
 
 class AddReceiptView(View):
@@ -52,7 +57,6 @@ class AddReceiptView(View):
         return render(request, 'add_receipt.html', _get_context({
             'qr_form': forms.QrForm(),
             'manual_input_form': forms.ManualInputForm(),
-            'photo_form': forms.PhotoForm()
         }))
 
     @method_decorator(login_required)
@@ -62,8 +66,8 @@ class AddReceiptView(View):
             if qr_form.is_valid():
                 try:
                     params = self._get_receipt_params_from_qr(qr_form.cleaned_data['text'])
-                    self._add_receipt_task(request.user, *params)
-                    return HttpResponseRedirect(reverse('receipt_added'))
+                    # self._add_receipt_task(request.user, *params)
+                    return HttpResponseRedirect(reverse('receipt-added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
                     qr_form.add_error(None, 'Не удалось добавить чек: %s' % e)
@@ -73,32 +77,19 @@ class AddReceiptView(View):
             manual_input_form = forms.ManualInputForm(request.POST)
             if manual_input_form.is_valid():
                 try:
-                    self._add_receipt_task(request.user, manual_input_form.cleaned_data['fiscal_drive_number'],
-                                           manual_input_form.cleaned_data['fiscal_document_number'],
-                                           manual_input_form.cleaned_data['fiscal_sign'],
-                                           manual_input_form.cleaned_data['total_sum'])
-                    return HttpResponseRedirect(reverse('receipt_added'))
+                    # self._add_receipt_task(request.user, manual_input_form.cleaned_data['fiscal_drive_number'],
+                    #                        manual_input_form.cleaned_data['fiscal_document_number'],
+                    #                        manual_input_form.cleaned_data['fiscal_sign'],
+                    #                        manual_input_form.cleaned_data['total_sum'])
+                    return HttpResponseRedirect(reverse('receipt-added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
                     manual_input_form.add_error(None, 'Не удалось добавить чек: %s' % e)
         else:
             manual_input_form = forms.ManualInputForm()
-        if 'photo' in request.POST:
-            photo_form = forms.PhotoForm(request.POST, request.FILES)
-            if photo_form.is_valid():
-                try:
-                    params = self._get_receipt_params_from_photo(photo_form.cleaned_data['photo'])
-                    self._add_receipt_task(request.user, *params)
-                    return HttpResponseRedirect(reverse('receipt_added'))
-                except Exception as e:
-                    logger.debug('Cannot add receipt: %s', e)
-                    photo_form.add_error(None, 'Не удалось добавить чек: %s' % e)
-        else:
-            photo_form = forms.PhotoForm()
         return render(request, 'add_receipt.html', _get_context({
             'qr_form': qr_form,
             'manual_input_form': manual_input_form,
-            'photo_form': photo_form
         }))
 
     def _get_receipt_params_from_qr(self, text):
@@ -107,49 +98,26 @@ class AddReceiptView(View):
         except Exception:
             raise Exception('не удалось разобрать QR-текст')
 
-    def _get_receipt_params_from_photo(self, photo):
-        try:
-            output = subprocess.run(('zbarimg', '-q', '--raw', photo.temporary_file_path()), stdout=subprocess.PIPE,
-                                    check=True).stdout.decode('utf-8')
-            return self._get_receipt_params_from_qr(output)
-        except Exception as e:
-            raise Exception('не удалось распознать QR-код на фотографии: %s' % e)
 
-    def _add_receipt_task(self, user, fiscal_drive_number, fiscal_document_number, fiscal_sign, total_sum):
-        with transaction.atomic():
-            if AddReceiptTask.objects.filter(fiscal_drive_number=fiscal_drive_number,
-                                             fiscal_document_number=fiscal_document_number,
-                                             fiscal_sign=fiscal_sign).exists():
-                raise Exception('чек уже добавлен')
-            AddReceiptTask.objects.create(fiscal_drive_number=fiscal_drive_number,
-                                          fiscal_document_number=fiscal_document_number,
-                                          fiscal_sign=fiscal_sign,
-                                          total_sum=total_sum,
-                                          buyer=user)
+def receipt_added_view(request):
+    context = {}
+    context = _add_common_context(context)
+    return render(request, 'receipt_added.html', context)
 
 
-class ReceiptAddedView(View):
-
-    def get(self, request):
-        return render(request, 'receipt_added.html', _get_context())
-
-
-class ProductsView(View):
-
-    def get(self, request):
-        products = sorted(Product.objects.all(), key=lambda product: product.last_buy, reverse=True)
-        return render(request, 'products.html', _get_context(self._get_context(products)))
-
-    def _get_context(self, products):
-        return {
-            'products': tuple({
-                'id': product.id,
-                'name': product.name,
-                'is_checked': product.is_checked,
-                'last_buy': product.last_buy,
-                'last_price': product.last_price
-            } for product in products)
-        }
+def products_view(request):
+    products = product_repository.get_all()
+    context = {
+        'products': [{
+            'id': product.id,
+            'name': product.name,
+            'is_checked': product.is_checked,
+            'last_buy': product.last_buy,
+            'last_price': product.last_price
+        } for product in products]
+    }
+    context = _add_common_context(context)
+    return render(request, 'products.html', context)
 
 
 class ProductView(View):

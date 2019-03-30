@@ -41,11 +41,6 @@ class ManualInputForm(forms.Form):
     total_sum = forms.DecimalField(label='Итого', required=False, widget=_BootstrapTextInput())
 
 
-class PhotoForm(forms.Form):
-
-    photo = forms.ImageField(label='Фото с QR-кодом')
-
-
 class BarcodeForm(forms.Form):
 
     barcode = forms.IntegerField(label='Штрихкод', widget=_BootstrapNumberInput())
