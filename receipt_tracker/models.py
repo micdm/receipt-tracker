@@ -1,5 +1,6 @@
+from datetime import datetime
 from decimal import Decimal
-from typing import List, Union
+from typing import List, Optional, Union
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -10,27 +11,29 @@ User = get_user_model()
 class Seller(models.Model):
 
     individual_number = models.PositiveIntegerField(unique=True)
-    original_name = models.CharField(max_length=100)
-    user_friendly_name = models.CharField(max_length=100, null=True)
+    original_name: str = models.CharField(max_length=100)
+    user_friendly_name: str = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return f'Seller(name={self.name})'
 
     @property
-    def name(self):
-        return self.user_friendly_name or self.original_name
+    def name(self) -> str:
+        if self.user_friendly_name:
+            return self.user_friendly_name
+        return self.original_name
 
 
 class Product(models.Model):
 
-    user_friendly_name = models.CharField(max_length=100, null=True, blank=True)
+    user_friendly_name: str = models.CharField(max_length=100, null=True, blank=True)
     barcode = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f'Product(name={self.name})'
 
     @property
-    def name(self):
+    def name(self) -> str:
         if self.user_friendly_name:
             return self.user_friendly_name
         if self.aliases:
@@ -38,33 +41,35 @@ class Product(models.Model):
         return '?'
 
     @property
-    def is_food(self):
+    def is_food(self) -> bool:
         return hasattr(self, 'foodproduct')
 
     @property
-    def is_non_food(self):
+    def is_non_food(self) -> bool:
         return hasattr(self, 'nonfoodproduct')
 
     @property
-    def is_checked(self):
+    def is_checked(self) -> bool:
         return self.is_food or self.is_non_food
 
     @property
-    def details(self) -> Union['FoodProduct', 'NonFoodProduct']:
-        if hasattr(self, 'foodproduct'):
+    def details(self) -> Optional[Union['FoodProduct', 'NonFoodProduct']]:
+        if self.is_food:
             return self.foodproduct
-        return self.nonfoodproduct
+        if self.is_non_food:
+            return self.nonfoodproduct
+        return None
 
     @property
     def aliases(self) -> List['ProductAlias']:
         return self.productalias_set.all()
 
     @property
-    def last_buy(self):
+    def last_buy(self) -> datetime:
         return Receipt.objects.filter(receiptitem__product_alias__product=self).order_by('-created')[0].created
 
     @property
-    def last_price(self):
+    def last_price(self) -> Decimal:
         return ReceiptItem.objects.filter(product_alias__product=self).order_by('-receipt__created')[0].price
 
 
@@ -81,19 +86,19 @@ class FoodProduct(models.Model):
         return f'FoodProduct(product={self.product}, weight={self.weight})'
 
     @property
-    def total_calories(self):
-        return self.calories * self.weight / 100
+    def total_calories(self) -> int:
+        return round(self.calories * self.weight / 100)
 
     @property
-    def total_protein(self):
+    def total_protein(self) -> Decimal:
         return self.protein * self.weight / 100
 
     @property
-    def total_fat(self):
+    def total_fat(self) -> Decimal:
         return self.fat * self.weight / 100
 
     @property
-    def total_carbohydrate(self):
+    def total_carbohydrate(self) -> Decimal:
         return self.carbohydrate * self.weight / 100
 
 
@@ -109,7 +114,7 @@ class ProductAlias(models.Model):
 
     seller = models.ForeignKey(Seller, models.CASCADE)
     product: Product = models.ForeignKey(Product, models.CASCADE)
-    name = models.CharField(max_length=100)
+    name: str = models.CharField(max_length=100)
 
     def __str__(self):
         return f'ProductAlias(product={self.product}, name={self.name})'
@@ -131,30 +136,33 @@ class Receipt(models.Model):
         return f'Receipt(seller={self.seller}, created={self.created})'
 
     @property
-    def items(self):
-        return self.receiptitem_set.all()
+    def items(self) -> List['ReceiptItem']:
+        return self.receiptitem_set.order_by('product_alias__name')
 
     @property
-    def protein(self):
+    def protein(self) -> Optional[Decimal]:
         return self._get_food_value('protein')
 
     @property
-    def fat(self):
+    def fat(self) -> Optional[Decimal]:
         return self._get_food_value('fat')
 
     @property
-    def carbohydrate(self):
+    def carbohydrate(self) -> Optional[Decimal]:
         return self._get_food_value('carbohydrate')
 
     @property
-    def calories(self):
+    def calories(self) -> Optional[Decimal]:
         return self._get_food_value('calories')
 
-    def _get_food_value(self, name):
-        return sum(filter(bool, (getattr(item, name) for item in self.items)))
+    def _get_food_value(self, name) -> Optional[Decimal]:
+        values = [value for value in (getattr(item, name) for item in self.items) if value is not None]
+        if values:
+            return sum(values)
+        return None
 
     @property
-    def non_checked_product_count(self):
+    def non_checked_product_count(self) -> int:
         return sum(not item.is_product_checked for item in self.items)
 
 
@@ -170,27 +178,27 @@ class ReceiptItem(models.Model):
         return f'ReceiptItem(product_alias={self.product_alias}, quantity={self.quantity}, price={self.price})'
 
     @property
-    def protein(self):
+    def protein(self) -> Optional[Decimal]:
         return self._get_food_value('protein')
 
     @property
-    def fat(self):
+    def fat(self) -> Optional[Decimal]:
         return self._get_food_value('fat')
 
     @property
-    def carbohydrate(self):
+    def carbohydrate(self) -> Optional[Decimal]:
         return self._get_food_value('carbohydrate')
 
     @property
-    def calories(self):
+    def calories(self) -> Optional[Decimal]:
         return self._get_food_value('calories')
 
-    def _get_food_value(self, name):
+    def _get_food_value(self, name) -> Optional[Decimal]:
         product = self.product_alias.product
         if not product.is_food:
             return None
         return getattr(product.foodproduct, name) * product.foodproduct.weight / 100
 
     @property
-    def is_product_checked(self):
+    def is_product_checked(self) -> bool:
         return self.product_alias.product.is_checked

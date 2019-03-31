@@ -68,9 +68,17 @@ class TestProductsView:
 
 class TestProductView:
 
-    def test_if_get(self, guest_client, product, food_product, receipt_item):
+    def test_if_get_and_product_not_found(self, guest_client):
+        response = guest_client.get(reverse('product', args=(1,)))
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    def test_if_get_and_product_found(self, guest_client, product, food_product, receipt_item):
         response = guest_client.get(reverse('product', args=(product.id,)))
         assert response.status_code == HTTPStatus.OK
+
+    def test_if_post_and_edit_not_allowed(self, guest_client, product):
+        response = guest_client.post(reverse('product', args=(product.id,)))
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
     def test_if_post_and_product_not_found(self, authorized_client):
         response = authorized_client.post(reverse('product', args=(1,)))
@@ -99,13 +107,25 @@ class TestValueReportView:
 
 class TestTopReportView:
 
-    def test(self, authorized_client, receipt_item):
+    def test_if_food(self, authorized_client, food_product, receipt_item):
+        response = authorized_client.get(reverse('top-report'))
+        assert response.status_code == HTTPStatus.OK
+
+    def test_if_non_food(self, authorized_client, non_food_product, receipt_item):
         response = authorized_client.get(reverse('top-report'))
         assert response.status_code == HTTPStatus.OK
 
 
 class TestSummaryReportView:
 
-    def test(self, authorized_client, food_product, receipt_item):
+    def test_if_food(self, authorized_client, food_product, receipt_item):
         response = authorized_client.get(reverse('summary-report'))
+        assert response.status_code == HTTPStatus.OK
+
+    def test_if_non_food(self, authorized_client, non_food_product, receipt_item):
+        response = authorized_client.get(reverse('summary-report'))
+        assert response.status_code == HTTPStatus.OK
+
+    def test_if_food_and_sorting_key_set(self, authorized_client, food_product, receipt_item):
+        response = authorized_client.get(f'{reverse("summary-report")}?sort=protein')
         assert response.status_code == HTTPStatus.OK

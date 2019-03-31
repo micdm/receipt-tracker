@@ -1,6 +1,6 @@
 import pytest
 
-from receipt_tracker.models import Product
+from receipt_tracker.models import Product, ReceiptItem
 
 pytestmark = pytest.mark.django_db
 
@@ -11,6 +11,16 @@ class TestSeller:
         result = str(seller)
         assert result
 
+    def test_name_if_user_friendly_name_set(self, mocker, seller):
+        mocker.patch.object(seller, 'user_friendly_name')
+        result = seller.name
+        assert result
+
+    def test_name(self, mocker, seller):
+        mocker.patch.object(seller, 'user_friendly_name', None)
+        result = seller.name
+        assert result
+
 
 class TestProduct:
 
@@ -19,14 +29,26 @@ class TestProduct:
         assert result
 
     def test_name_if_user_friendly_name_set(self, mocker, product):
-        with mocker.patch.object(product, 'user_friendly_name'):
-            result = str(product)
+        mocker.patch.object(product, 'user_friendly_name')
+        result = product.name
         assert result
 
     def test_name_if_no_aliases(self, mocker, product):
-        with mocker.patch.object(Product, 'aliases', return_value=[]):
-            result = str(product)
+        mocker.patch.object(Product, 'aliases', mocker.PropertyMock(return_value=[]))
+        result = product.name
         assert result
+
+    def test_details_if_food(self, product, food_product):
+        result = product.details
+        assert result == food_product
+
+    def test_details_if_non_food(self, product, non_food_product):
+        result = product.details
+        assert result == non_food_product
+
+    def test_details_if_unknown(self, product):
+        result = product.details
+        assert result is None
 
 
 class TestFoodProduct:
@@ -55,6 +77,11 @@ class TestReceipt:
     def test_str(self, receipt):
         result = str(receipt)
         assert result
+
+    def test_calories(self, mocker, receipt, receipt_item):
+        mocker.patch.object(ReceiptItem, 'calories', mocker.PropertyMock(return_value=1))
+        result = receipt.calories
+        assert result == 1
 
 
 class TestReceiptItem:

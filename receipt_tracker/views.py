@@ -1,30 +1,22 @@
-import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 from logging import getLogger
-from typing import Dict
+from typing import Dict, Tuple
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
-from django.utils.decorators import method_decorator
 from django.views import View
 
 from receipt_tracker import forms
+from receipt_tracker.lib import qr_code
 from receipt_tracker.models import *
-from receipt_tracker.repositories import product_repository, receipt_item_repository
+from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
 
 logger = getLogger(__name__)
 
-
-def _get_context(context=None):
-    if not context:
-        context = {}
-    context.update({
-        'google_analytics_id': settings.GOOGLE_ANALYTICS_ID if not settings.DEBUG else None
-    })
-    return context
+TOP_SIZE = 10
 
 
 def _add_common_context(context: Dict) -> Dict:
@@ -49,53 +41,41 @@ def index_view(request):
     return render(request, 'index.html', context)
 
 
-class AddReceiptView(View):
-
-    @method_decorator(login_required)
-    def get(self, request):
-        return render(request, 'add_receipt.html', _get_context({
-            'qr_form': forms.QrForm(),
-            'manual_input_form': forms.ManualInputForm(),
-        }))
-
-    @method_decorator(login_required)
-    def post(self, request):
+@login_required
+def add_receipt_view(request):
+    if request.method == 'POST':
         if 'qr' in request.POST:
             qr_form = forms.QrForm(request.POST)
             if qr_form.is_valid():
                 try:
-                    params = self._get_receipt_params_from_qr(qr_form.cleaned_data['text'])
-                    # self._add_receipt_task(request.user, *params)
+                    params = qr_code.decode(qr_form.cleaned_data['text'])
                     return HttpResponseRedirect(reverse('receipt-added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
-                    qr_form.add_error(None, 'Не удалось добавить чек: %s' % e)
+                    qr_form.add_error(None, f'Не удалось добавить чек: {e}')
         else:
             qr_form = forms.QrForm()
+
         if 'manual' in request.POST:
             manual_input_form = forms.ManualInputForm(request.POST)
             if manual_input_form.is_valid():
                 try:
-                    # self._add_receipt_task(request.user, manual_input_form.cleaned_data['fiscal_drive_number'],
-                    #                        manual_input_form.cleaned_data['fiscal_document_number'],
-                    #                        manual_input_form.cleaned_data['fiscal_sign'],
-                    #                        manual_input_form.cleaned_data['total_sum'])
                     return HttpResponseRedirect(reverse('receipt-added'))
                 except Exception as e:
                     logger.debug('Cannot add receipt: %s', e)
-                    manual_input_form.add_error(None, 'Не удалось добавить чек: %s' % e)
+                    manual_input_form.add_error(None, f'Не удалось добавить чек: {e}')
         else:
             manual_input_form = forms.ManualInputForm()
-        return render(request, 'add_receipt.html', _get_context({
-            'qr_form': qr_form,
-            'manual_input_form': manual_input_form,
-        }))
+    else:
+        qr_form = forms.QrForm()
+        manual_input_form = forms.ManualInputForm()
 
-    def _get_receipt_params_from_qr(self, text):
-        try:
-            return tuple(re.search(pattern, text).group(1) for pattern in (r'fn=(\d+)', r'i=(\d+)', r'fp=(\d+)', r's=([\d.]+)'))
-        except Exception:
-            raise Exception('не удалось разобрать QR-текст')
+    context = {
+        'qr_form': qr_form,
+        'manual_input_form': manual_input_form,
+    }
+    context = _add_common_context(context)
+    return render(request, 'add_receipt.html', context)
 
 
 def receipt_added_view(request):
@@ -181,241 +161,246 @@ def product_view(request, product_id: int):
     return render(request, 'product.html', context)
 
 
-class ValueReportView(View):
+@login_required
+def value_report_view(request):
+    receipts = receipt_repository.get_last_by_buyer_id(request.user.id)
 
-    @method_decorator(login_required)
-    def get(self, request):
-        receipts = Receipt.objects\
-            .filter(buyer=request.user, created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))\
-            .order_by('-created')
-        return render(request, 'reports/value.html', _get_context(self._get_context(receipts)))
+    context = {
+        'receipts': list(map(_get_receipt_info, receipts)),
+        'food': {
+            'protein': sum(receipt.protein for receipt in receipts if receipt.protein is not None),
+            'fat': sum(receipt.fat for receipt in receipts if receipt.fat is not None),
+            'carbohydrate': sum(receipt.carbohydrate for receipt in receipts if receipt.carbohydrate is not None),
+            'calories': sum(receipt.calories for receipt in receipts if receipt.calories is not None) / 1000,
+        },
+        'food_should_be': _get_food_should_be(receipts),
+        'non_checked_count': sum(receipt.non_checked_product_count for receipt in receipts)
+    }
+    context = _add_common_context(context)
 
-    def _get_context(self, receipts):
-        return {
-            'receipts': tuple(map(self._get_receipt_info, receipts)),
-            'food': {
-                'protein': sum(receipt.protein for receipt in receipts),
-                'fat': sum(receipt.fat for receipt in receipts),
-                'carbohydrate': sum(receipt.carbohydrate for receipt in receipts),
-                'calories': sum(receipt.calories for receipt in receipts) / 1000,
-            },
-            'food_should_be': self._get_food_should_be(receipts),
-            'non_checked_count': sum(receipt.non_checked_product_count for receipt in receipts)
-        }
-
-    def _get_receipt_info(self, receipt):
-        items = receipt.receiptitem_set.all().order_by('product_alias__name')
-        return {
-            'id': receipt.id,
-            'seller_name': receipt.seller.name,
-            'created': receipt.created,
-            'items': [{
-                'product_id': item.product_alias.product.id,
-                'name': item.product_alias.product.name,
-                'price': item.price,
-                'quantity': item.quantity,
-                'total': item.total,
-                'is_product_checked': item.is_product_checked
-            } for item in items],
-            'food': {
-                'protein': receipt.protein,
-                'fat': receipt.fat,
-                'carbohydrate': receipt.carbohydrate,
-                'calories': receipt.calories / 1000
-            },
-            'non_checked_count': receipt.non_checked_product_count
-        }
-
-    def _get_food_should_be(self, receipts):
-        part = sum(receipt.protein + receipt.fat + receipt.carbohydrate for receipt in receipts) / 6
-        return {
-            'protein': part,
-            'fat': part,
-            'carbohydrate': part * 4,
-        }
+    return render(request, 'reports/value.html', context)
 
 
-class TopReportView(View):
-
-    TOP_SIZE = 10
-
-    @method_decorator(login_required)
-    def get(self, request):
-        items = ReceiptItem.objects.filter(receipt__buyer=request.user,
-                                           receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
-        return render(request, 'reports/top.html', _get_context(
-            self._get_context(self._get_top_by_calories(items), self._get_top_by_total(items), self._get_top_by_weight(items),
-                              self._get_top_by_protein(items), self._get_top_by_fat(items), self._get_top_by_carbohydrate(items),
-                              self._get_top_by_effectivity(items))
-        ))
-
-    def _get_top_by_calories(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = 0
-            products[product] += item.calories / 1000
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_total(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if product not in products:
-                products[product] = 0
-            products[product] += item.total
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_weight(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = 0
-            products[product] += item.quantity * product.foodproduct.weight / 1000
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_protein(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = 0
-            products[product] += item.protein / 1000
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_fat(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = 0
-            products[product] += item.fat / 1000
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_carbohydrate(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = 0
-            products[product] += item.carbohydrate / 1000
-        return sorted(products.items(), key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_top_by_effectivity(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            if not product.is_food:
-                continue
-            if product not in products:
-                products[product] = []
-            products[product].append(item.calories / float(item.total))
-        products = ((product, sum(values) / len(values) / 1000) for product, values in products.items())
-        return sorted(products, key=lambda item: item[1], reverse=True)[:self.TOP_SIZE]
-
-    def _get_context(self, top_by_calories, top_by_total, top_by_weight, top_by_protein, top_by_fat, top_by_carbohydrate,
-                     top_by_effectivity):
-        def get_top(products):
-            return tuple({
-                'id': product.id,
-                'name': product.name,
-                'is_checked': product.is_checked,
-                'value': value,
-            } for product, value in products)
-        return {
-            'top_by_calories': get_top(top_by_calories),
-            'top_by_total': get_top(top_by_total),
-            'top_by_weight': get_top(top_by_weight),
-            'top_by_protein': get_top(top_by_protein),
-            'top_by_fat': get_top(top_by_fat),
-            'top_by_carbohydrate': get_top(top_by_carbohydrate),
-            'top_by_effectivity': get_top(top_by_effectivity)
-        }
+def _get_receipt_info(receipt: Receipt) -> Dict:
+    return {
+        'id': receipt.id,
+        'seller_name': receipt.seller.name,
+        'created': receipt.created,
+        'items': [{
+            'product_id': item.product_alias.product.id,
+            'name': item.product_alias.product.name,
+            'price': item.price,
+            'quantity': item.quantity,
+            'total': item.total,
+            'is_product_checked': item.is_product_checked
+        } for item in receipt.items],
+        'food': {
+            'protein': receipt.protein,
+            'fat': receipt.fat,
+            'carbohydrate': receipt.carbohydrate,
+            'calories': receipt.calories / 1000 if receipt.calories is not None else None
+        },
+        'non_checked_count': receipt.non_checked_product_count
+    }
 
 
-class SummaryView(View):
+def _get_food_should_be(receipts: List[Receipt]) -> Dict:
+    part = sum(receipt.protein + receipt.fat + receipt.carbohydrate for receipt in receipts
+               if all((receipt.protein, receipt.fat, receipt.carbohydrate))) / 6
+    return {
+        'protein': part,
+        'fat': part,
+        'carbohydrate': part * 4,
+    }
 
-    class _FoodStats:
 
-        def __init__(self):
-            self.protein = 0
-            self.fat = 0
-            self.carbohydrate = 0
-            self.calories = 0
-            self.total = 0
+@login_required
+def top_report_view(request):
+    items = receipt_item_repository.get_last_by_buyer_id(request.user.id)
 
-        def add(self, item):
-            self.protein += item.protein
-            self.fat += item.fat
-            self.carbohydrate += item.carbohydrate
-            self.calories += item.calories / 1000
-            self.total += item.total
+    context = {key: _get_top(func(items)) for key, func in (
+        ('top_by_calories', _get_top_by_calories),
+        ('top_by_total', _get_top_by_total),
+        ('top_by_weight', _get_top_by_weight),
+        ('top_by_protein', _get_top_by_protein),
+        ('top_by_fat', _get_top_by_fat),
+        ('top_by_carbohydrate', _get_top_by_carbohydrate),
+        ('top_by_effectivity', _get_top_by_effectivity),
+    )}
+    context = _add_common_context(context)
 
-    class _NonFoodStats:
+    return render(request, 'reports/top.html', context)
 
-        def __init__(self):
-            self.protein = None
-            self.fat = None
-            self.carbohydrate = None
-            self.calories = None
-            self.total = 0
 
-        def add(self, item):
-            self.total += item.total
+ProductStats = Tuple[Product, Decimal]
 
-    COLUMNS = (
-        ('protein', 'Белки'),
-        ('fat', 'Жиры'),
-        ('carbohydrate', 'Углеводы'),
-        ('calories', 'Калорийность'),
-        ('total', 'Стоимость'),
-    )
 
-    def get(self, request):
-        items = ReceiptItem.objects.filter(receipt__buyer=request.user,
-                                           receipt__created__range=(datetime.utcnow() - timedelta(days=30), datetime.utcnow()))
-        products = self._get_summary(items)
-        sorting_key = request.GET.get('sort')
-        if sorting_key in (item[0] for item in self.COLUMNS):
-            products = sorted(products, key=lambda pair: getattr(pair[1], sorting_key) or 0, reverse=True)
-        return render(request, 'reports/summary.html', _get_context(self._get_context(products, sorting_key)))
+def _get_top(products: List[ProductStats]) -> List[Dict]:
+    return [{
+        'id': product.id,
+        'name': product.name,
+        'is_checked': product.is_checked,
+        'value': value,
+    } for product, value in products]
 
-    def _get_summary(self, items):
-        products = {}
-        for item in items:
-            product = item.product_alias.product
-            stats = products.get(product)
-            if stats is None:
-                stats = self._FoodStats() if product.is_food else self._NonFoodStats()
-                products[product] = stats
-            stats.add(item)
-        return tuple(products.items())
 
-    def _get_context(self, products, sorting_key):
-        return {
-            'columns': self.COLUMNS,
-            'sorting_key': sorting_key,
-            'products': tuple({
-                'id': product.id,
-                'name': product.name,
-                'is_food': product.is_food,
-                'is_checked': product.is_checked,
-                'protein': stats.protein,
-                'fat': stats.fat,
-                'carbohydrate': stats.carbohydrate,
-                'calories': stats.calories,
-                'total': stats.total
-            } for product, stats in products)
-        }
+def _get_top_by_calories(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = 0
+        products[product] += item.calories / 1000
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_total(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if product not in products:
+            products[product] = 0
+        products[product] += item.total
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_weight(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = 0
+        products[product] += item.quantity * product.foodproduct.weight / 1000
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_protein(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = 0
+        products[product] += item.protein / 1000
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_fat(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = 0
+        products[product] += item.fat / 1000
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_carbohydrate(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = 0
+        products[product] += item.carbohydrate / 1000
+    return sorted(products.items(), key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+def _get_top_by_effectivity(items: List[ReceiptItem]) -> List[ProductStats]:
+    products = {}
+    for item in items:
+        product = item.product_alias.product
+        if not product.is_food:
+            continue
+        if product not in products:
+            products[product] = []
+        products[product].append(item.calories / float(item.total))
+    products = ((product, sum(values) / len(values) / 1000) for product, values in products.items())
+    return sorted(products, key=lambda item: item[1], reverse=True)[:TOP_SIZE]
+
+
+class _FoodStats:
+
+    def __init__(self):
+        self.protein = 0
+        self.fat = 0
+        self.carbohydrate = 0
+        self.calories = 0
+        self.total = 0
+
+    def add(self, item):
+        self.protein += item.protein
+        self.fat += item.fat
+        self.carbohydrate += item.carbohydrate
+        self.calories += item.calories / 1000
+        self.total += item.total
+
+
+class _NonFoodStats:
+
+    def __init__(self):
+        self.protein = None
+        self.fat = None
+        self.carbohydrate = None
+        self.calories = None
+        self.total = 0
+
+    def add(self, item):
+        self.total += item.total
+
+
+COLUMNS = (
+    ('protein', 'Белки'),
+    ('fat', 'Жиры'),
+    ('carbohydrate', 'Углеводы'),
+    ('calories', 'Калорийность'),
+    ('total', 'Стоимость'),
+)
+
+
+@login_required
+def summary_report_view(request):
+    items = receipt_item_repository.get_last_by_buyer_id(request.user.id)
+    products = _get_summary(items)
+    sorting_key = request.GET.get('sort')
+    if sorting_key in (item[0] for item in COLUMNS):
+        products = sorted(products, key=lambda pair: getattr(pair[1], sorting_key) or 0, reverse=True)
+
+    context = {
+        'columns': COLUMNS,
+        'sorting_key': sorting_key,
+        'products': [{
+            'id': product.id,
+            'name': product.name,
+            'is_food': product.is_food,
+            'is_checked': product.is_checked,
+            'protein': stats.protein,
+            'fat': stats.fat,
+            'carbohydrate': stats.carbohydrate,
+            'calories': stats.calories,
+            'total': stats.total
+        } for product, stats in products]
+    }
+    context = _add_common_context(context)
+
+    return render(request, 'reports/summary.html', context)
+
+
+def _get_summary(items: List[ReceiptItem]) -> List[Tuple[Product, Union[_FoodStats, _NonFoodStats]]]:
+    products: Dict[Product, Union[_FoodStats, _NonFoodStats]] = {}
+    for item in items:
+        product = item.product_alias.product
+        stats = products.get(product)
+        if stats is None:
+            stats = _FoodStats() if product.is_food else _NonFoodStats()
+            products[product] = stats
+        stats.add(item)
+    return list(products.items())
