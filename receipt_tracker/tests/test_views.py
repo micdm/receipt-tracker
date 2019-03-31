@@ -1,41 +1,17 @@
-from datetime import datetime
 from http import HTTPStatus
 
 import pytest
-from django.test import TestCase
 from django.urls import reverse
 from pytest import fixture
 
-from receipt_tracker.models import Product, ProductAlias, Receipt, ReceiptItem, FoodProduct
-from receipt_tracker.repositories import receipt_item_repository, product_repository
-from receipt_tracker.views import AddReceiptView
+from receipt_tracker.models import Product
 
 pytestmark = pytest.mark.django_db
 
 
 @fixture
-def receipt(mixer, user):
-    return mixer.blend(Receipt, buyer=user, created=datetime.utcnow())
-
-
-@fixture
-def product(mixer):
-    return mixer.blend(Product)
-
-
-@fixture
-def food_product(mixer, product):
-    return mixer.blend(FoodProduct, product=product)
-
-
-@fixture
-def product_alias(mixer, product):
-    return mixer.blend(ProductAlias, product=product)
-
-
-@fixture
-def receipt_item(mixer, receipt, product_alias):
-    return mixer.blend(ReceiptItem, receipt=receipt, product_alias=product_alias)
+def product_with_barcode(mixer):
+    return mixer.blend(Product, barcode='1')
 
 
 class TestIndexView:
@@ -92,7 +68,7 @@ class TestProductsView:
 
 class TestProductView:
 
-    def test_if_get(self, guest_client, product, receipt_item):
+    def test_if_get(self, guest_client, product, food_product, receipt_item):
         response = guest_client.get(reverse('product', args=(product.id,)))
         assert response.status_code == HTTPStatus.OK
 
@@ -100,9 +76,16 @@ class TestProductView:
         response = authorized_client.post(reverse('product', args=(1,)))
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_if_post_and_product_updated(self, authorized_client, product, receipt_item):
+    def test_if_post_and_product_not_updated(self, authorized_client, product, food_product, receipt_item):
         response = authorized_client.post(reverse('product', args=(product.id,)), {
-            'barcode': '1'
+            'barcode': '1',
+        })
+        assert response.status_code == HTTPStatus.OK
+
+    def test_if_post_and_product_updated(self, authorized_client, product, product_with_barcode,
+                                         food_product, receipt_item):
+        response = authorized_client.post(reverse('product', args=(product.id,)), {
+            'barcode': product_with_barcode.barcode,
         })
         assert response.status_code == HTTPStatus.FOUND
 

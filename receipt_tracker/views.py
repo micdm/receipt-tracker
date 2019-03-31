@@ -5,7 +5,6 @@ from typing import Dict
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
@@ -120,73 +119,66 @@ def products_view(request):
     return render(request, 'products.html', context)
 
 
-class ProductView(View):
+def product_view(request, product_id: int):
+    product = product_repository.get_by_id(product_id)
+    if not product:
+        return HttpResponseNotFound()
 
-    def get(self, request, product_id):
-        product = Product.objects.get(id=product_id)
-        if not product:
-            return HttpResponseNotFound()
-        return render(request, 'product.html', _get_context(self._get_context(request.user, product, getattr(product, 'foodproduct', None))))
+    is_edit_allowed = receipt_item_repository.is_exist_by_product_id_and_buyer_id(product_id, request.user.id)
 
-    def _get_context(self, user, product, food_product, barcode_form=None):
-        return {
-            'product': {
-                'id': product.id,
-                'name': product.name,
-                'barcode': product.barcode,
-                'is_food': product.is_food,
-                'is_non_food': product.is_non_food,
-                'aliases': tuple({
-                    'id': alias.id,
-                    'seller': alias.seller.name,
-                    'name': alias.name,
-                } for alias in product.productalias_set.all()),
-                'prices': tuple({
-                    'seller': item.receipt.seller.name,
-                    'created': item.receipt.created,
-                    'value': item.price,
-                } for item in ReceiptItem.objects.filter(product_alias__product=product).order_by('-receipt__created')),
-                'food': {
-                    'calories': food_product.calories / 1000,
-                    'protein': food_product.protein,
-                    'fat': food_product.fat,
-                    'carbohydrate': food_product.carbohydrate,
-                    'weight': food_product.weight / 1000,
-                    'total': {
-                        'calories': food_product.total_calories / 1000,
-                        'protein': food_product.total_protein,
-                        'fat': food_product.total_fat,
-                        'carbohydrate': food_product.total_carbohydrate
-                    }
-                } if food_product else None
-            },
-            'edit': {
-                'is_allowed': self._is_edit_allowed(user, product),
-                'barcode_form': barcode_form or forms.BarcodeForm(initial={'barcode': product.barcode})
-            }
-        }
-
-    def _is_edit_allowed(self, user, product):
-        return not user.is_anonymous and ReceiptItem.objects.filter(product_alias__product=product, receipt__buyer=user).exists()
-
-    @method_decorator(login_required)
-    def post(self, request, product_id):
-        product = Product.objects.get(id=product_id)
-        if not product:
-            return HttpResponseNotFound()
-        if not self._is_edit_allowed(request.user, product):
+    if request.method == 'POST':
+        if not is_edit_allowed:
             return HttpResponseForbidden()
         barcode_form = forms.BarcodeForm(request.POST)
         if barcode_form.is_valid():
-            with transaction.atomic():
-                original_product = Product.objects.filter(barcode=barcode_form.cleaned_data['barcode']).first()
-                if original_product:
-                    ProductAlias.objects.filter(product=product).update(product=original_product)
-                    product.delete()
-                    return HttpResponseRedirect(reverse('product', args=(original_product.id,)))
-                else:
-                    barcode_form.add_error(None, 'Штрихкод не найден')
-        return render(request, 'product.html', _get_context(self._get_context(request.user, product, getattr(product, 'foodproduct', None), barcode_form)))
+            original_product_id = product_repository.set_barcode(product_id, barcode_form.cleaned_data['barcode'])
+            if original_product_id:
+                return HttpResponseRedirect(reverse('product', args=(original_product_id,)))
+            else:
+                barcode_form.add_error(None, 'Штрихкод не найден')
+    else:
+        barcode_form = forms.BarcodeForm(initial={'barcode': product.barcode})
+
+    food_product = product.details
+    context = {
+        'product': {
+            'id': product.id,
+            'name': product.name,
+            'barcode': product.barcode,
+            'is_food': product.is_food,
+            'is_non_food': product.is_non_food,
+            'aliases': [{
+                'id': alias.id,
+                'seller': alias.seller.name,
+                'name': alias.name,
+            } for alias in product.aliases],
+            'prices': [{
+                'seller': item.receipt.seller.name,
+                'created': item.receipt.created,
+                'value': item.price,
+            } for item in receipt_item_repository.get_by_product_id(product_id)],
+            'food': {
+                'calories': food_product.calories / 1000,
+                'protein': food_product.protein,
+                'fat': food_product.fat,
+                'carbohydrate': food_product.carbohydrate,
+                'weight': food_product.weight / 1000,
+                'total': {
+                    'calories': food_product.total_calories / 1000,
+                    'protein': food_product.total_protein,
+                    'fat': food_product.total_fat,
+                    'carbohydrate': food_product.total_carbohydrate
+                }
+            } if food_product else None
+        },
+        'edit': {
+            'is_allowed': is_edit_allowed,
+            'barcode_form': barcode_form
+        }
+    }
+    context = _add_common_context(context)
+
+    return render(request, 'product.html', context)
 
 
 class ValueReportView(View):

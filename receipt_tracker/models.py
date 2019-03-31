@@ -1,8 +1,8 @@
 from decimal import Decimal
+from typing import List, Union
 
 from django.contrib.auth import get_user_model
 from django.db import models
-
 
 User = get_user_model()
 
@@ -13,12 +13,12 @@ class Seller(models.Model):
     original_name = models.CharField(max_length=100)
     user_friendly_name = models.CharField(max_length=100, null=True)
 
+    def __str__(self):
+        return f'Seller(name={self.name})'
+
     @property
     def name(self):
         return self.user_friendly_name or self.original_name
-
-    def __str__(self):
-        return self.name
 
 
 class Product(models.Model):
@@ -26,9 +26,16 @@ class Product(models.Model):
     user_friendly_name = models.CharField(max_length=100, null=True, blank=True)
     barcode = models.PositiveIntegerField(null=True, blank=True)
 
+    def __str__(self):
+        return f'Product(name={self.name})'
+
     @property
     def name(self):
-        return self.user_friendly_name or str(self.productalias_set.all()[0])
+        if self.user_friendly_name:
+            return self.user_friendly_name
+        if self.aliases:
+            return self.aliases[0].name
+        return '?'
 
     @property
     def is_food(self):
@@ -43,15 +50,22 @@ class Product(models.Model):
         return self.is_food or self.is_non_food
 
     @property
+    def details(self) -> Union['FoodProduct', 'NonFoodProduct']:
+        if hasattr(self, 'foodproduct'):
+            return self.foodproduct
+        return self.nonfoodproduct
+
+    @property
+    def aliases(self) -> List['ProductAlias']:
+        return self.productalias_set.all()
+
+    @property
     def last_buy(self):
         return Receipt.objects.filter(receiptitem__product_alias__product=self).order_by('-created')[0].created
 
     @property
     def last_price(self):
         return ReceiptItem.objects.filter(product_alias__product=self).order_by('-receipt__created')[0].price
-
-    def __str__(self):
-        return self.name
 
 
 class FoodProduct(models.Model):
@@ -62,6 +76,9 @@ class FoodProduct(models.Model):
     fat: Decimal = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
     carbohydrate: Decimal = models.DecimalField(decimal_places=2, max_digits=4, help_text='На сто грамм')
     weight: int = models.PositiveSmallIntegerField(help_text='В граммах')
+
+    def __str__(self):
+        return f'FoodProduct(product={self.product}, weight={self.weight})'
 
     @property
     def total_calories(self):
@@ -79,16 +96,13 @@ class FoodProduct(models.Model):
     def total_carbohydrate(self):
         return self.carbohydrate * self.weight / 100
 
-    def __str__(self):
-        return '%s (%sг)' % (str(self.product), self.weight)
-
 
 class NonFoodProduct(models.Model):
 
     product = models.OneToOneField(Product, models.CASCADE)
 
     def __str__(self):
-        return str(self.product)
+        return f'NonFoodProduct(product={self.product}'
 
 
 class ProductAlias(models.Model):
@@ -98,7 +112,7 @@ class ProductAlias(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return f'ProductAlias(product={self.product}, name={self.name})'
 
 
 class Receipt(models.Model):
@@ -114,7 +128,7 @@ class Receipt(models.Model):
     fiscal_sign = models.BigIntegerField()
 
     def __str__(self):
-        return '%s@%s' % (self.seller, self.created)
+        return f'Receipt(seller={self.seller}, created={self.created})'
 
     @property
     def items(self):
@@ -153,7 +167,7 @@ class ReceiptItem(models.Model):
     total = models.DecimalField(decimal_places=2, max_digits=10)
 
     def __str__(self):
-        return '%s x%s по %s' % (self.product_alias, self.quantity, self.price)
+        return f'ReceiptItem(product_alias={self.product_alias}, quantity={self.quantity}, price={self.price})'
 
     @property
     def protein(self):
