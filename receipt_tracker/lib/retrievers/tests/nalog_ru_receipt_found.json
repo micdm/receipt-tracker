@@ -1,0 +1,31 @@
+{
+    "document": {
+        "receipt": {
+            "totalSum": 3880,
+            "dateTime": "2019-02-25T20:25:00",
+            "operationType": 1,
+            "receiptCode": 3,
+            "cashTotalSum": 0,
+            "requestNumber": 348,
+            "user": "ООО \"Спар-Томск\"",
+            "ecashTotalSum": 3880,
+            "nds10": 353,
+            "userInn": "7017326645",
+            "kktRegId": "0000541150056843    ",
+            "fiscalDocumentNumber": 106462,
+            "taxationType": 1,
+            "items": [
+                {
+                    "sum": 3880,
+                    "quantity": 1,
+                    "name": "Бифидок Деревенское молочко 2,5% 0,5л т/п/20",
+                    "nds10": 353,
+                    "price": 3880
+                }
+            ],
+            "fiscalSign": 1984555575,
+            "fiscalDriveNumber": "9288000100020178",
+            "shiftNumber": 266
+        }
+    }
+}
