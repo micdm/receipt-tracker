@@ -1,4 +1,3 @@
-from datetime import timedelta
 from logging import getLogger
 from typing import Dict, Tuple
 
@@ -7,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
-from django.views import View
 
 from receipt_tracker import forms
 from receipt_tracker.lib import qr_code

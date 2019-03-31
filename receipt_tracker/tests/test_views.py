@@ -2,21 +2,16 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
-from pytest import fixture
 
-from receipt_tracker.models import Product
+from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
 
 pytestmark = pytest.mark.django_db
 
 
-@fixture
-def product_with_barcode(mixer):
-    return mixer.blend(Product, barcode='1')
-
-
 class TestIndexView:
 
-    def test(self, guest_client, receipt_item):
+    def test(self, mocker, guest_client, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last', return_value=[receipt_item])
         response = guest_client.get(reverse('index'))
         assert response.status_code == HTTPStatus.OK
 
@@ -61,37 +56,48 @@ class TestReceiptAddedView:
 
 class TestProductsView:
 
-    def test(self, guest_client, product, receipt_item):
+    def test(self, mocker, guest_client, product, receipt_item):
+        mocker.patch.object(product_repository, 'get_all', return_value=[product])
         response = guest_client.get(reverse('products'))
         assert response.status_code == HTTPStatus.OK
 
 
 class TestProductView:
 
-    def test_if_get_and_product_not_found(self, guest_client):
+    def test_if_get_and_product_not_found(self, mocker, guest_client):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=None)
         response = guest_client.get(reverse('product', args=(1,)))
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_if_get_and_product_found(self, guest_client, product, food_product, receipt_item):
+    def test_if_get_and_product_found(self, mocker, guest_client, product, food_product, receipt_item):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=product)
+        mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=False)
+        mocker.patch.object(receipt_item_repository, 'get_by_product_id', return_value=[receipt_item])
         response = guest_client.get(reverse('product', args=(product.id,)))
         assert response.status_code == HTTPStatus.OK
 
-    def test_if_post_and_edit_not_allowed(self, guest_client, product):
+    def test_if_post_and_edit_not_allowed(self, mocker, guest_client, product):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=product)
+        mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=False)
         response = guest_client.post(reverse('product', args=(product.id,)))
         assert response.status_code == HTTPStatus.FORBIDDEN
 
-    def test_if_post_and_product_not_found(self, authorized_client):
-        response = authorized_client.post(reverse('product', args=(1,)))
-        assert response.status_code == HTTPStatus.NOT_FOUND
-
-    def test_if_post_and_product_not_updated(self, authorized_client, product, food_product, receipt_item):
+    def test_if_post_and_product_not_updated(self, mocker, authorized_client, product, food_product, receipt_item):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=product)
+        mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=True)
+        mocker.patch.object(product_repository, 'set_barcode', return_value=None)
+        mocker.patch.object(receipt_item_repository, 'get_by_product_id', return_value=[receipt_item])
         response = authorized_client.post(reverse('product', args=(product.id,)), {
             'barcode': '1',
         })
         assert response.status_code == HTTPStatus.OK
 
-    def test_if_post_and_product_updated(self, authorized_client, product, product_with_barcode,
+    def test_if_post_and_product_updated(self, mocker, authorized_client, product, product_with_barcode,
                                          food_product, receipt_item):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=product)
+        mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=True)
+        mocker.patch.object(product_repository, 'set_barcode', return_value=product_with_barcode.id)
+        mocker.patch.object(receipt_item_repository, 'get_by_product_id', return_value=[receipt_item])
         response = authorized_client.post(reverse('product', args=(product.id,)), {
             'barcode': product_with_barcode.barcode,
         })
@@ -100,32 +106,38 @@ class TestProductView:
 
 class TestValueReportView:
 
-    def test(self, authorized_client, receipt_item):
+    def test(self, mocker, authorized_client, receipt, receipt_item):
+        mocker.patch.object(receipt_repository, 'get_last_by_buyer_id', return_value=[receipt])
         response = authorized_client.get(reverse('value-report'))
         assert response.status_code == HTTPStatus.OK
 
 
 class TestTopReportView:
 
-    def test_if_food(self, authorized_client, food_product, receipt_item):
+    def test_if_food(self, mocker, authorized_client, food_product, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last_by_buyer_id', return_value=[receipt_item])
         response = authorized_client.get(reverse('top-report'))
         assert response.status_code == HTTPStatus.OK
 
-    def test_if_non_food(self, authorized_client, non_food_product, receipt_item):
+    def test_if_non_food(self, mocker, authorized_client, non_food_product, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last_by_buyer_id', return_value=[receipt_item])
         response = authorized_client.get(reverse('top-report'))
         assert response.status_code == HTTPStatus.OK
 
 
 class TestSummaryReportView:
 
-    def test_if_food(self, authorized_client, food_product, receipt_item):
+    def test_if_food(self, mocker, authorized_client, food_product, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last_by_buyer_id', return_value=[receipt_item])
         response = authorized_client.get(reverse('summary-report'))
         assert response.status_code == HTTPStatus.OK
 
-    def test_if_non_food(self, authorized_client, non_food_product, receipt_item):
+    def test_if_non_food(self, mocker, authorized_client, non_food_product, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last_by_buyer_id', return_value=[receipt_item])
         response = authorized_client.get(reverse('summary-report'))
         assert response.status_code == HTTPStatus.OK
 
-    def test_if_food_and_sorting_key_set(self, authorized_client, food_product, receipt_item):
+    def test_if_food_and_sorting_key_set(self, mocker, authorized_client, food_product, receipt_item):
+        mocker.patch.object(receipt_item_repository, 'get_last_by_buyer_id', return_value=[receipt_item])
         response = authorized_client.get(f'{reverse("summary-report")}?sort=protein')
         assert response.status_code == HTTPStatus.OK

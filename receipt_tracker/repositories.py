@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from django.db.transaction import atomic
 
-from receipt_tracker.models import Product, ProductAlias, ReceiptItem, Receipt, NonFoodProduct
+from receipt_tracker.models import NonFoodProduct, Product, ProductAlias, Receipt, ReceiptItem
 
 
 class ProductRepository:
@@ -19,20 +19,20 @@ class ProductRepository:
     def set_barcode(self, product_id: int, barcode: int) -> Optional[int]:
         product = self.get_by_id(product_id)
         original_product = Product.objects.filter(barcode=barcode).first()
-        if original_product:
-            ProductAlias.objects.filter(product=product).update(product=original_product)
-            product.delete()
-            return original_product.id
-        return None
+        if not original_product:
+            return None
+        ProductAlias.objects.filter(product=product).update(product=original_product)
+        product.delete()
+        return original_product.id
 
     @atomic
     def set_non_food(self, product_id: int) -> bool:
         product = self.get_by_id(product_id)
-        if product.is_food:
-            product.foodproduct.delete()
-            NonFoodProduct.objects.create(product=product)
-            return True
-        return False
+        if not product.is_food:
+            return False
+        product.foodproduct.delete()
+        NonFoodProduct.objects.create(product=product)
+        return True
 
 
 class ReceiptRepository:

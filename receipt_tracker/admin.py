@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 
-from receipt_tracker.models import Seller, ProductAlias, Receipt, ReceiptItem, FoodProduct, NonFoodProduct, Product
+from receipt_tracker.models import FoodProduct, NonFoodProduct, Product, ProductAlias, Receipt, ReceiptItem, Seller
 from receipt_tracker.repositories import product_repository
 
 admin.site.register(Seller)

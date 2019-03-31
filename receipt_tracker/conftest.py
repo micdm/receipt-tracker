@@ -42,6 +42,11 @@ def product(mixer):
 
 
 @fixture
+def product_with_barcode(mixer):
+    return mixer.blend(Product, barcode='1')
+
+
+@fixture
 def food_product(mixer, product):
     return mixer.blend(FoodProduct, product=product)
 
