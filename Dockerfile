@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev python3
     apk del --no-cache .build-deps
 
 COPY manage.py /opt/receipt-tracker/
-#COPY receipt_tracker /opt/receipt-tracker/receipt_tracker
+COPY receipt_tracker /opt/receipt-tracker/receipt_tracker
 
 # Prod
 FROM python:3.7-alpine AS prod

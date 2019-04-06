@@ -6,22 +6,7 @@
 <h2>Добавить расшифрованный QR-код:</h2>
 <form action="{% url 'add-receipt' %}" method="post">
     {% csrf_token %}
-    {{ qr_form.as_p }}
-    <input type="hidden" name="qr" value="1"/>
-    <input type="submit" value="Добавить" class="btn btn-primary"/>
-</form>
-<h2>...или добавить вручную:</h2>
-<form action="{% url 'add-receipt' %}" method="post">
-    {% csrf_token %}
-    {{ manual_input_form.as_p }}
-    <input type="hidden" name="manual" value="1"/>
-    <input type="submit" value="Добавить" class="btn btn-primary"/>
-</form>
-<h2>...или картинкой (но это ненадёжно):</h2>
-<form action="{% url 'add-receipt' %}" method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ photo_form.as_p }}
-    <input type="hidden" name="photo" value="1"/>
+    {{ form.as_p }}
     <input type="submit" value="Добавить" class="btn btn-primary"/>
 </form>
 {% endblock %}

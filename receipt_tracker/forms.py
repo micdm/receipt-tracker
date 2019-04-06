@@ -33,14 +33,6 @@ class QrForm(forms.Form):
     text = forms.CharField(label='Текст', widget=_BootstrapTextarea(attrs={'autocomplete': 'off', 'rows': 4}))
 
 
-class ManualInputForm(forms.Form):
-
-    fiscal_drive_number = forms.IntegerField(label='ФН', widget=_BootstrapTextInput())
-    fiscal_document_number = forms.IntegerField(label='ФД', widget=_BootstrapTextInput())
-    fiscal_sign = forms.IntegerField(label='ФП', widget=_BootstrapTextInput())
-    total_sum = forms.DecimalField(label='Итого', required=False, widget=_BootstrapTextInput())
-
-
 class BarcodeForm(forms.Form):
 
     barcode = forms.IntegerField(label='Штрихкод', widget=_BootstrapNumberInput())

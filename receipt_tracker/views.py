@@ -42,35 +42,21 @@ def index_view(request):
 @login_required
 def add_receipt_view(request):
     if request.method == 'POST':
-        if 'qr' in request.POST:
-            qr_form = forms.QrForm(request.POST)
-            if qr_form.is_valid():
-                try:
-                    params = qr_code.decode(qr_form.cleaned_data['text'])
-                    return HttpResponseRedirect(reverse('receipt-added'))
-                except Exception as e:
-                    logger.debug('Cannot add receipt: %s', e)
-                    qr_form.add_error(None, f'Не удалось добавить чек: {e}')
-        else:
-            qr_form = forms.QrForm()
-
-        if 'manual' in request.POST:
-            manual_input_form = forms.ManualInputForm(request.POST)
-            if manual_input_form.is_valid():
-                try:
-                    return HttpResponseRedirect(reverse('receipt-added'))
-                except Exception as e:
-                    logger.debug('Cannot add receipt: %s', e)
-                    manual_input_form.add_error(None, f'Не удалось добавить чек: {e}')
-        else:
-            manual_input_form = forms.ManualInputForm()
+        form = forms.QrForm(request.POST)
+        if form.is_valid():
+            try:
+                raw_params = qr_code.decode(form.cleaned_data['text'])
+                receipt_params = ReceiptParams(*raw_params)
+                add_receipt.delay(receipt_params)
+                return HttpResponseRedirect(reverse('receipt-added'))
+            except Exception as e:
+                logger.debug('Cannot add receipt: %s', e)
+                form.add_error(None, f'Не удалось добавить чек: {e}')
     else:
-        qr_form = forms.QrForm()
-        manual_input_form = forms.ManualInputForm()
+        form = forms.QrForm()
 
     context = {
-        'qr_form': qr_form,
-        'manual_input_form': manual_input_form,
+        'form': form,
     }
     context = _add_common_context(context)
     return render(request, 'add_receipt.html', context)
