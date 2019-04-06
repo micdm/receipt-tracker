@@ -2,8 +2,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List, Optional
 
-from django.db.transaction import atomic
-
 from receipt_tracker.models import NonFoodProduct, Product, ProductAlias, Receipt, ReceiptItem, Seller
 
 
@@ -27,7 +25,6 @@ class ProductRepository:
     def get_by_id(self, product_id: int) -> Optional[Product]:
         return Product.objects.filter(id=product_id).first()
 
-    @atomic
     def set_barcode(self, product_id: int, barcode: int) -> Optional[int]:
         product = self.get_by_id(product_id)
         original_product = Product.objects.filter(barcode=barcode).first()
@@ -37,7 +34,6 @@ class ProductRepository:
         product.delete()
         return original_product.id
 
-    @atomic
     def set_non_food(self, product_id: int) -> bool:
         product = self.get_by_id(product_id)
         if not product.is_food:

@@ -3,6 +3,7 @@ from typing import Dict, Tuple
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db.transaction import atomic
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, reverse
@@ -93,7 +94,8 @@ def product_view(request, product_id: int):
             return HttpResponseForbidden()
         barcode_form = forms.BarcodeForm(request.POST)
         if barcode_form.is_valid():
-            original_product_id = product_repository.set_barcode(product_id, barcode_form.cleaned_data['barcode'])
+            with atomic():
+                original_product_id = product_repository.set_barcode(product_id, barcode_form.cleaned_data['barcode'])
             if original_product_id:
                 return HttpResponseRedirect(reverse('product', args=(original_product_id,)))
             else:
