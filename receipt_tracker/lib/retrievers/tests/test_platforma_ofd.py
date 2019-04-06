@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 
 import requests
 from pytest import raises
@@ -23,6 +24,16 @@ class TestPlatformaOfdOperatorReceiptRetriever:
 
 
 class TestParser:
+    """
+    curl "https://lk.platformaofd.ru/web/noauth/cheque?fn=8710000100688395&fp=2745981095" > \
+        receipt_tracker/lib/retrievers/tests/platforma_ofd_receipt_found.html
+    curl "https://lk.platformaofd.ru/web/noauth/cheque?fn=8710000100816354&fp=2964112708" > \
+        receipt_tracker/lib/retrievers/tests/platforma_ofd_receipt_found_with_no_barcodes.html
+    curl "https://lk.platformaofd.ru/web/noauth/cheque?fn=9288000100020178&fp=2664983421" > \
+        receipt_tracker/lib/retrievers/tests/platforma_ofd_receipt_found_with_no_barcodes_v2.html
+    curl "https://lk.platformaofd.ru/web/noauth/cheque?fn=87100001" > \
+        receipt_tracker/lib/retrievers/tests/platforma_ofd_receipt_not_found.html
+    """
 
     def test_parse_if_receipt_found(self):
         result = Parser().parse(get_file_content('platforma_ofd_receipt_found.html'))
@@ -32,7 +43,7 @@ class TestParser:
         assert result.fiscal_sign == '2745981095'
         assert result.seller_name == 'ООО "Спар-Томск"'
         assert result.seller_individual_number == '7017326645'
-        assert result.created == datetime(2017, 7, 29, 11, 19)
+        assert result.created == datetime(2017, 7, 29, 18, 19)
 
         assert len(result.items) == 5
 
@@ -59,14 +70,31 @@ class TestParser:
         assert result.fiscal_sign == '2964112708'
         assert result.seller_name == 'ООО "Хитэк-Сибирь"'
         assert result.seller_individual_number == '5406358004'
-        assert result.created == datetime(2017, 6, 30, 12, 32)
+        assert result.created == datetime(2017, 6, 30, 19, 32)
 
         assert len(result.items) == 1
 
-        assert result.items[0].price == '279.00'
-        assert result.items[0].total == '279.00'
         assert result.items[0].name == '1. KAP-590  Флюид для поврежденных кончиков волос "Treatment", 6'
-        assert result.items[0].quantity == '1'
+        assert result.items[0].quantity == Decimal(1)
+        assert result.items[0].price == Decimal(279)
+        assert result.items[0].total == Decimal(279)
+
+    def test_parse_if_receipt_found_with_no_barcodes_v2(self):
+        result = Parser().parse(get_file_content('platforma_ofd_receipt_found_with_no_barcodes_v2.html'))
+
+        assert result.fiscal_drive_number == '9288000100020178'
+        assert result.fiscal_document_number == '124028'
+        assert result.fiscal_sign == '2664983421'
+        assert result.seller_name == 'ООО "Спар-Томск"'
+        assert result.seller_individual_number == '7017326645'
+        assert result.created == datetime(2019, 4, 6, 20, 40)
+
+        assert len(result.items) == 7
+
+        assert result.items[0].name == 'Молоко Деревенское молочко 3,2% 900г п/п'
+        assert result.items[0].quantity == Decimal(1)
+        assert result.items[0].price == Decimal('39.9')
+        assert result.items[0].total == Decimal('39.9')
 
     def test_parse_if_receipt_not_found(self):
         result = Parser().parse(get_file_content('platforma_ofd_receipt_not_found.html'))
