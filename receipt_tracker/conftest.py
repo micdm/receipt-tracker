@@ -37,6 +37,11 @@ def seller(mixer):
 
 
 @fixture
+def another_seller(mixer):
+    return mixer.blend(Seller)
+
+
+@fixture
 def product(mixer):
     return mixer.blend(Product)
 
@@ -59,6 +64,11 @@ def non_food_product(mixer, product):
 @fixture
 def product_alias(mixer, seller, product):
     return mixer.blend(ProductAlias, seller=seller, product=product)
+
+
+@fixture
+def another_product_alias(mixer, another_seller, product):
+    return mixer.blend(ProductAlias, seller=another_seller, product=product)
 
 
 @fixture

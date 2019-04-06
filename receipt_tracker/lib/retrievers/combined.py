@@ -1,7 +1,8 @@
 from logging import getLogger
 from typing import List, Optional
 
-from receipt_tracker.lib.retrievers import ParsedReceipt, ReceiptParams, ReceiptRetriever
+from receipt_tracker.lib import ReceiptParams
+from receipt_tracker.lib.retrievers import ParsedReceipt, ReceiptRetriever
 
 logger = getLogger(__name__)
 

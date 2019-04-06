@@ -2,7 +2,8 @@ from typing import Optional
 
 from pytest import fixture
 
-from receipt_tracker.lib.retrievers import ParsedReceipt, ReceiptParams, ReceiptRetriever
+from receipt_tracker.lib import ReceiptParams
+from receipt_tracker.lib.retrievers import ParsedReceipt, ReceiptRetriever
 from receipt_tracker.lib.retrievers.combined import CombinedReceiptRetriever
 
 

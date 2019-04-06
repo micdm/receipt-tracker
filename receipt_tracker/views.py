@@ -11,6 +11,7 @@ from receipt_tracker import forms
 from receipt_tracker.lib import qr_code
 from receipt_tracker.models import *
 from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
+from receipt_tracker.tasks import add_receipt, receipt_params_to_dict
 
 logger = getLogger(__name__)
 
@@ -44,14 +45,11 @@ def add_receipt_view(request):
     if request.method == 'POST':
         form = forms.QrForm(request.POST)
         if form.is_valid():
-            try:
-                raw_params = qr_code.decode(form.cleaned_data['text'])
-                receipt_params = ReceiptParams(*raw_params)
-                add_receipt.delay(receipt_params)
+            receipt_params = qr_code.decode(form.cleaned_data['text'])
+            if receipt_params:
+                add_receipt.delay(request.user.id, receipt_params_to_dict(receipt_params))
                 return HttpResponseRedirect(reverse('receipt-added'))
-            except Exception as e:
-                logger.debug('Cannot add receipt: %s', e)
-                form.add_error(None, f'Не удалось добавить чек: {e}')
+            form.add_error(None, 'Не удалось добавить чек')
     else:
         form = forms.QrForm()
 

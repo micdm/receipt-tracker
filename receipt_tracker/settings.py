@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
     'social_django',
     'receipt_tracker'
 ]
@@ -137,3 +138,6 @@ LOGGING = {
 }
 
 GOOGLE_ANALYTICS_ID = env.str('GOOGLE_ANALYTICS_ID')
+
+CELERY_BROKER_URL = env.str('MESSAGE_BROKER_URL')
+CELERY_RESULT_BACKEND = 'django-db'

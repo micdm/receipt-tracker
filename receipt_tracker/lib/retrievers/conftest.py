@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 from pytest import fixture
 
-from receipt_tracker.lib.retrievers import ReceiptParams
+from receipt_tracker.lib import ReceiptParams
 
 
 @fixture

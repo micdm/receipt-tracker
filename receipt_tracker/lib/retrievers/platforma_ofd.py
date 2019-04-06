@@ -5,8 +5,8 @@ from typing import List, Optional
 import requests
 from lxml import etree
 
-from receipt_tracker.lib.retrievers import BadResponse, ParsedReceipt, ParsedReceiptItem, ReceiptParams, \
-    ReceiptRetriever
+from receipt_tracker.lib import ReceiptParams
+from receipt_tracker.lib.retrievers import BadResponse, ParsedReceipt, ParsedReceiptItem, ReceiptRetriever
 
 
 class PlatformaOfdOperatorReceiptRetriever(ReceiptRetriever):

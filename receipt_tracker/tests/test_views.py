@@ -1,8 +1,12 @@
+from datetime import datetime
+from decimal import Decimal
 from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
 
+from receipt_tracker import views
+from receipt_tracker.lib import ReceiptParams, qr_code
 from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
 
 pytestmark = pytest.mark.django_db
@@ -22,27 +26,18 @@ class TestAddReceiptView:
         response = authorized_client.get(reverse('add-receipt'))
         assert response.status_code == HTTPStatus.OK
 
-    def test_post_if_bad_qr_content_provided(self, authorized_client):
+    def test_post_if_bad_qr_content_provided(self, mocker, authorized_client):
+        mocker.patch.object(qr_code, 'decode', return_value=None)
         response = authorized_client.post(reverse('add-receipt'), {
-            'qr': True,
-            'text': 'foobar',
+            'text': 'foo',
         })
         assert response.status_code == HTTPStatus.OK
 
-    def test_post_if_qr_content_provided(self, authorized_client):
+    def test_post_if_qr_content_provided(self, mocker, authorized_client):
+        mocker.patch.object(qr_code, 'decode', return_value=ReceiptParams(1, 1, 1, datetime.utcnow(), Decimal(1)))
+        mocker.patch.object(views, 'add_receipt')
         response = authorized_client.post(reverse('add-receipt'), {
-            'qr': '1',
-            'text': 't=20170615T141100&s=67.20&fn=8710000100036875&i=78337&fp=255743793&n=1',
-        })
-        assert response.status_code == HTTPStatus.FOUND
-
-    def test_post_if_manual_content_provided(self, authorized_client):
-        response = authorized_client.post(reverse('add-receipt'), {
-            'manual': '1',
-            'fiscal_drive_number': '1',
-            'fiscal_document_number': '2',
-            'fiscal_sign': '3',
-            'total_sum': '4',
+            'text': 'foo',
         })
         assert response.status_code == HTTPStatus.FOUND
 

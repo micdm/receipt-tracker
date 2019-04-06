@@ -11,6 +11,8 @@ social-auth-app-django = "*"
 psycopg2-binary = "*"
 requests = "*"
 lxml = "*"
+celery = "*"
+django-celery-results = "*"
 
 [dev-packages]
 mixer = "*"

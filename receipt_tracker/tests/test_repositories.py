@@ -1,12 +1,26 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytest
 from pytest import fixture
 
 from receipt_tracker.models import Product, Receipt, ReceiptItem, User
-from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
+from receipt_tracker.repositories import product_alias_repository, product_repository, receipt_item_repository, \
+    receipt_repository, seller_repository
 
 pytestmark = pytest.mark.django_db
+
+
+class TestSellerRepository:
+
+    def test_get_or_create_if_exist(self, seller):
+        result = seller_repository.get_or_create(seller.individual_number, 'foo')
+        assert result.id == seller.id
+        assert result.original_name == seller.original_name
+
+    def test_get_or_create_if_not_exist(self):
+        result = seller_repository.get_or_create(1, 'foo')
+        assert result.original_name == 'foo'
 
 
 class TestProductRepository:
@@ -14,6 +28,10 @@ class TestProductRepository:
     @fixture
     def another_product(self, mixer):
         return mixer.blend(Product)
+
+    def test_create(self):
+        result = product_repository.create()
+        assert result.id
 
     def test_get_all(self, product, another_product):
         result = product_repository.get_all()
@@ -52,6 +70,17 @@ class TestProductRepository:
         assert product.is_non_food
 
 
+class TestProductAliasRepository:
+
+    def test_create(self, seller, product):
+        result = product_alias_repository.create(seller.id, product.id, 'foo')
+        assert result.id
+
+    def test_get_by_seller_and_name(self, seller, product_alias, another_product_alias):
+        result = product_alias_repository.get_by_seller_and_name(seller.id, product_alias.name)
+        assert result.id == product_alias.id
+
+
 class TestReceiptRepository:
 
     @fixture
@@ -73,6 +102,10 @@ class TestReceiptRepository:
     @fixture
     def another_buyer_receipt(self, mixer, another_user):
         return mixer.blend(Receipt, buyer=another_user, created=datetime.utcnow())
+
+    def test_create(self, seller, user, ):
+        result = receipt_repository.create(seller.id, user.id, datetime.utcnow(), 1, 1, 1)
+        assert result.id
 
     def test_get_last_by_buyer_id(self, user, receipt, another_receipt, old_receipt, another_buyer_receipt):
         result = receipt_repository.get_last_by_buyer_id(user.id)
@@ -106,6 +139,11 @@ class TestReceiptItemRepository:
     @fixture
     def old_receipt_item(self, mixer, another_product, old_receipt):
         return mixer.blend(ReceiptItem, receipt=old_receipt, product_alias__product=another_product)
+
+    def test_create(self, receipt, product_alias):
+        result = receipt_item_repository.create(receipt.id, product_alias.id, Decimal('1'),
+                                                Decimal('0.1'), Decimal('0.2'))
+        assert result.id
 
     def test_get_last(self, receipt_item, old_receipt_item):
         result = receipt_item_repository.get_last()

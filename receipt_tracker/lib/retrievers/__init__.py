@@ -1,40 +1,31 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-
-class ReceiptParams:
-
-    def __init__(self, fiscal_drive_number: str, fiscal_document_number: str, fiscal_sign: str,
-                 created: datetime, amount: Decimal):
-        self.fiscal_drive_number = fiscal_drive_number
-        self.fiscal_document_number = fiscal_document_number
-        self.fiscal_sign = fiscal_sign
-        self.created = created
-        self.amount = amount
+from receipt_tracker.lib import ReceiptParams
 
 
+@dataclass(frozen=True)
 class ParsedReceipt:
 
-    def __init__(self, fiscal_drive_number: str, fiscal_document_number: str, fiscal_sign: str, seller_name: str,
-                 seller_individual_number: str, created: datetime, items: List['ParsedReceiptItem']):
-        self.fiscal_drive_number = fiscal_drive_number
-        self.fiscal_document_number = fiscal_document_number
-        self.fiscal_sign = fiscal_sign
-        self.seller_name = seller_name
-        self.seller_individual_number = seller_individual_number
-        self.created = created
-        self.items = items
+    fiscal_drive_number: str
+    fiscal_document_number: str
+    fiscal_sign: str
+    seller_name: str
+    seller_individual_number: str
+    created: datetime
+    items: List['ParsedReceiptItem']
 
 
+@dataclass(frozen=True)
 class ParsedReceiptItem:
 
-    def __init__(self, name: str, quantity: str, price: str, total: str):
-        self.name = name
-        self.quantity = quantity
-        self.price = price
-        self.total = total
+    name: str
+    quantity: Decimal
+    price: Decimal
+    total: Decimal
 
 
 class ReceiptRetriever(ABC):
