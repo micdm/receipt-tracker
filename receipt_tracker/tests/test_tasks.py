@@ -15,9 +15,9 @@ pytestmark = pytest.mark.django_db
 @fixture
 def receipt_params():
     return {
-        'fiscal_drive_number': 1,
-        'fiscal_document_number': 1,
-        'fiscal_sign': 1,
+        'fiscal_drive_number': '1',
+        'fiscal_document_number': '1',
+        'fiscal_sign': '1',
         'created': '2019-04-06T09:57:56.674673',
         'amount': '1.5',
     }

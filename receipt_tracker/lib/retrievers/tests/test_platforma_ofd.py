@@ -47,20 +47,20 @@ class TestParser:
 
         assert len(result.items) == 5
 
-        assert result.items[0].price == '43.60'
-        assert result.items[0].total == '130.80'
         assert result.items[0].name == 'Мороженое Пломбир на йогурте к'
-        assert result.items[0].quantity == '3'
+        assert result.items[0].quantity == Decimal(3)
+        assert result.items[0].price == Decimal('43.6')
+        assert result.items[0].total == Decimal('130.8')
 
-        assert result.items[2].price == '75.80'
-        assert result.items[2].total == '75.80'
         assert result.items[2].name == 'Квас ЖИТНИЦА 1,5л Деревенский'
-        assert result.items[2].quantity == '1'
+        assert result.items[2].quantity == Decimal(1)
+        assert result.items[2].price == Decimal('75.8')
+        assert result.items[2].total == Decimal('75.8')
 
-        assert result.items[4].price == '30.70'
-        assert result.items[4].total == '30.70'
         assert result.items[4].name == 'Сухарики Не только Для своих Б'
-        assert result.items[4].quantity == '1'
+        assert result.items[4].quantity == Decimal(1)
+        assert result.items[4].price == Decimal('30.7')
+        assert result.items[4].total == Decimal('30.7')
 
     def test_parse_if_receipt_found_with_no_barcodes(self):
         result = Parser().parse(get_file_content('platforma_ofd_receipt_found_with_no_barcodes.html'))

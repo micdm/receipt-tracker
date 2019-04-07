@@ -13,9 +13,9 @@ def decode(text: str) -> Optional[ReceiptParams]:
     try:
         parts = [part.split('=', 1) for part in text.split('&')]
         return ReceiptParams(
-            _get_field(parts, 'fn', int),
-            _get_field(parts, 'i', int),
-            _get_field(parts, 'fp', int),
+            _get_field(parts, 'fn', str, str.isdigit),
+            _get_field(parts, 'i', str, str.isdigit),
+            _get_field(parts, 'fp', str, str.isdigit),
             _get_field(parts, 't', lambda value: datetime.strptime(value, '%Y%m%dT%H%M%S')),
             _get_field(parts, 's', Decimal),
         )
@@ -24,12 +24,15 @@ def decode(text: str) -> Optional[ReceiptParams]:
         return None
 
 
-def _get_field(parts: List[List[str]], name: str, mapper: Callable):
+def _get_field(parts: List[List[str]], name: str, mapper: Callable, validator: Optional[Callable] = None):
     for key, value in parts:
         if key != name:
             continue
         try:
-            return mapper(value)
+            mapped = mapper(value)
+            if validator and not validator(mapped):
+                raise Exception('invalid value')
+            return mapped
         except Exception as e:
             logger.debug('Cannot parse field %s: %s', name, e)
             raise BadParameter(f'cannot parse field "{name}"')

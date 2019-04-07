@@ -6,8 +6,8 @@ from datetime import datetime
 @dataclass(frozen=True)
 class ReceiptParams:
 
-    fiscal_drive_number: int
-    fiscal_document_number: int
-    fiscal_sign: int
+    fiscal_drive_number: str
+    fiscal_document_number: str
+    fiscal_sign: str
     created: datetime
     amount: Decimal

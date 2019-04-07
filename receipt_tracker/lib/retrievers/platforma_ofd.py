@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from http import HTTPStatus
 from logging import getLogger
@@ -56,9 +56,9 @@ class Parser:
         for i in range(0, len(strings), 8):
             yield ParsedReceiptItem(
                 strings[i].strip(),
-                strings[i + 1].split(' х ')[0],
-                strings[i + 1].split(' х ')[1],
-                strings[i + 7],
+                Decimal(strings[i + 1].split(' х ')[0]),
+                Decimal(strings[i + 1].split(' х ')[1]),
+                Decimal(strings[i + 7]),
             )
 
     def _get_items_with_no_barcodes(self, tree) -> List[ParsedReceiptItem]:

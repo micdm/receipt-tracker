@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 from http import HTTPStatus
 from typing import List, Optional, Union
 
@@ -56,9 +57,9 @@ class ParserV1:
         for i in range(0, len(strings) - 8, 9):
             yield ParsedReceiptItem(
                 strings[i],
-                strings[i + 1][:-4] if strings[i + 1].endswith(',000') else strings[i + 1].replace(',', '.'),
-                strings[i + 2],
-                strings[i + 3],
+                Decimal(strings[i + 1][:-4] if strings[i + 1].endswith(',000') else strings[i + 1].replace(',', '.')),
+                Decimal(strings[i + 2]),
+                Decimal(strings[i + 3]),
             )
 
     def get_second_column_text(self, tree, first_column_text) -> str:
@@ -82,9 +83,9 @@ class ParserV2:
         for i in range(0, len(strings), 12):
             yield ParsedReceiptItem(
                 strings[i],
-                strings[i + 1][:-4] if strings[i + 1].endswith('.000') else strings[i + 1],
-                strings[i + 2],
-                strings[i + 4],
+                Decimal(strings[i + 1][:-4] if strings[i + 1].endswith('.000') else strings[i + 1]),
+                Decimal(strings[i + 2]),
+                Decimal(strings[i + 4]),
             )
 
     def get_second_column_text(self, tree, first_column_text) -> str:

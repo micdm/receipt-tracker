@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import List, Optional, Union
 
 from django.contrib.auth import get_user_model
+from django.core.validators import integer_validator
 from django.db import models
 
 User = get_user_model()
@@ -10,7 +11,7 @@ User = get_user_model()
 
 class Seller(models.Model):
 
-    individual_number = models.PositiveIntegerField(unique=True)
+    individual_number = models.CharField(max_length=15, unique=True, validators=[integer_validator])
     original_name: str = models.CharField(max_length=100)
     user_friendly_name: str = models.CharField(max_length=100, null=True)
 
@@ -27,7 +28,7 @@ class Seller(models.Model):
 class Product(models.Model):
 
     user_friendly_name: str = models.CharField(max_length=100, null=True, blank=True)
-    barcode = models.PositiveIntegerField(null=True, blank=True)
+    barcode = models.CharField(max_length=20, null=True, blank=True, validators=[integer_validator])
 
     def __str__(self):
         return f'Product(name={self.name})'
@@ -128,9 +129,9 @@ class Receipt(models.Model):
     seller = models.ForeignKey(Seller, models.CASCADE)
     buyer = models.ForeignKey(get_user_model(), models.CASCADE)
     created = models.DateTimeField()
-    fiscal_drive_number = models.BigIntegerField()
-    fiscal_document_number = models.BigIntegerField()
-    fiscal_sign = models.BigIntegerField()
+    fiscal_drive_number = models.CharField(max_length=50, validators=[integer_validator])
+    fiscal_document_number = models.CharField(max_length=50, validators=[integer_validator])
+    fiscal_sign = models.CharField(max_length=50, validators=[integer_validator])
 
     def __str__(self):
         return f'Receipt(seller={self.seller}, created={self.created})'

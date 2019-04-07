@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime
+from decimal import Decimal
 from http import HTTPStatus
 
 import requests
@@ -66,7 +67,7 @@ class TestNalogRuReceiptRetriever:
 
         assert len(result.items) == 1
 
-        assert result.items[0].price == '38.8'
-        assert result.items[0].total == '38.8'
         assert result.items[0].name == 'Бифидок Деревенское молочко 2,5% 0,5л т/п/20'
-        assert result.items[0].quantity == '1'
+        assert result.items[0].quantity == Decimal('1')
+        assert result.items[0].price == Decimal('38.8')
+        assert result.items[0].total == Decimal('38.8')

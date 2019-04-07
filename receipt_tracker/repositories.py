@@ -7,7 +7,7 @@ from receipt_tracker.models import NonFoodProduct, Product, ProductAlias, Receip
 
 class SellerRepository:
 
-    def get_or_create(self, individual_number: int, original_name: str) -> Seller:
+    def get_or_create(self, individual_number: str, original_name: str) -> Seller:
         seller, _ = Seller.objects.get_or_create(individual_number=individual_number,
                                                  defaults={'original_name': original_name})
         return seller
@@ -25,7 +25,7 @@ class ProductRepository:
     def get_by_id(self, product_id: int) -> Optional[Product]:
         return Product.objects.filter(id=product_id).first()
 
-    def set_barcode(self, product_id: int, barcode: int) -> Optional[int]:
+    def set_barcode(self, product_id: int, barcode: str) -> Optional[int]:
         product = self.get_by_id(product_id)
         original_product = Product.objects.filter(barcode=barcode).first()
         if not original_product:
@@ -54,8 +54,8 @@ class ProductAliasRepository:
 
 class ReceiptRepository:
 
-    def create(self, seller_id: int, buyer_id: int, created: datetime, fiscal_drive_number: int,
-               fiscal_document_number: int, fiscal_sign: int) -> Receipt:
+    def create(self, seller_id: int, buyer_id: int, created: datetime, fiscal_drive_number: str,
+               fiscal_document_number: str, fiscal_sign: str) -> Receipt:
         return Receipt.objects.create(seller_id=seller_id, buyer_id=buyer_id, created=created,
                                       fiscal_drive_number=fiscal_drive_number,
                                       fiscal_document_number=fiscal_document_number, fiscal_sign=fiscal_sign)

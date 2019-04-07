@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta
+from decimal import Decimal
 from http import HTTPStatus
 from logging import getLogger
 from typing import Optional
@@ -65,16 +66,16 @@ class NalogRuReceiptRetriever(ReceiptRetriever):
 
         receipt = response.json()['document']['receipt']
         return ParsedReceipt(
-            receipt['fiscalDriveNumber'],
+            str(receipt['fiscalDriveNumber']),
             str(receipt['fiscalDocumentNumber']),
             str(receipt['fiscalSign']),
-            receipt['user'],
-            receipt['userInn'],
+            str(receipt['user']),
+            str(receipt['userInn']),
             datetime.strptime(receipt['dateTime'], '%Y-%m-%dT%H:%M:%S'),
             [ParsedReceiptItem(
-                item['name'],
-                str(item['quantity']),
-                str(round(item['price'] / 100, 2)),
-                str(round(item['sum'] / 100, 2)),
+                str(item['name']),
+                Decimal(str(item['quantity'])).quantize(Decimal('0.001')),
+                (Decimal(item['price']) / 100).quantize(Decimal('0.01')),
+                (Decimal(item['sum']) / 100).quantize(Decimal('0.01')),
             ) for item in receipt['items']]
         )
