@@ -69,6 +69,10 @@ class ReceiptRepository:
             .filter(buyer=buyer_id, created__range=(now - timedelta(days=30), now)) \
             .order_by('-created')
 
+    def is_exist(self, fiscal_drive_number: str, fiscal_document_number: str, fiscal_sign: str) -> bool:
+        return Receipt.objects.filter(fiscal_drive_number=fiscal_drive_number,
+                                      fiscal_document_number=fiscal_document_number, fiscal_sign=fiscal_sign).exists()
+
 
 class ReceiptItemRepository:
 

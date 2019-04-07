@@ -46,11 +46,15 @@ def add_receipt_view(request):
     if request.method == 'POST':
         form = forms.QrForm(request.POST)
         if form.is_valid():
-            receipt_params = qr_code.decode(form.cleaned_data['text'])
-            if receipt_params:
-                add_receipt.delay(request.user.id, receipt_params_to_dict(receipt_params))
+            params = qr_code.decode(form.cleaned_data['text'])
+            if not params:
+                form.add_error(None, 'Не удалось разобрать код')
+            elif receipt_repository.is_exist(params.fiscal_drive_number, params.fiscal_document_number,
+                                             params.fiscal_sign):
+                form.add_error(None, 'Чек уже добавлен')
+            else:
+                add_receipt.delay(request.user.id, receipt_params_to_dict(params))
                 return HttpResponseRedirect(reverse('receipt-added'))
-            form.add_error(None, 'Не удалось добавить чек')
     else:
         form = forms.QrForm()
 

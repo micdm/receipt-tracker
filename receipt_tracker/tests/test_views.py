@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import pytest
 from django.urls import reverse
+from pytest import fixture
 
 from receipt_tracker import views
 from receipt_tracker.lib import ReceiptParams, qr_code
@@ -22,6 +23,10 @@ class TestIndexView:
 
 class TestAddReceiptView:
 
+    @fixture
+    def receipt_params(self):
+        return ReceiptParams('1', '1', '1', datetime.utcnow(), Decimal(1))
+
     def test_get(self, authorized_client):
         response = authorized_client.get(reverse('add-receipt'))
         assert response.status_code == HTTPStatus.OK
@@ -33,8 +38,17 @@ class TestAddReceiptView:
         })
         assert response.status_code == HTTPStatus.OK
 
-    def test_post_if_qr_content_provided(self, mocker, authorized_client):
-        mocker.patch.object(qr_code, 'decode', return_value=ReceiptParams(1, 1, 1, datetime.utcnow(), Decimal(1)))
+    def test_post_if_receipt_already_exists(self, mocker, authorized_client, receipt_params):
+        mocker.patch.object(qr_code, 'decode', return_value=receipt_params)
+        mocker.patch.object(receipt_repository, 'is_exist', return_value=True)
+        response = authorized_client.post(reverse('add-receipt'), {
+            'text': 'foo',
+        })
+        assert response.status_code == HTTPStatus.OK
+
+    def test_post(self, mocker, authorized_client, receipt_params):
+        mocker.patch.object(qr_code, 'decode', return_value=receipt_params)
+        mocker.patch.object(receipt_repository, 'is_exist', return_value=False)
         mocker.patch.object(views, 'add_receipt')
         response = authorized_client.post(reverse('add-receipt'), {
             'text': 'foo',

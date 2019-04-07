@@ -39,6 +39,9 @@ def dict_to_receipt_params(params: ReceiptParamsDict) -> ReceiptParams:
 @app.task(bind=True)
 def add_receipt(task, user_id: int, raw_params: ReceiptParamsDict):
     params = dict_to_receipt_params(raw_params)
+    if receipt_repository.is_exist(params.fiscal_drive_number, params.fiscal_document_number, params.fiscal_sign):
+        logger.info('Receipt %s already exists', params)
+        return
     logger.info('Adding receipt by params %s for user %s', params, user_id)
     parsed_receipt = _retrieve_receipt(params)
     if parsed_receipt:

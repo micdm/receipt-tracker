@@ -113,6 +113,15 @@ class TestReceiptRepository:
         assert result[0].id == another_receipt.id
         assert result[1].id == receipt.id
 
+    def test_is_exist_if_not_exists(self):
+        result = receipt_repository.is_exist('foo', 'bar', 'baz')
+        assert not result
+
+    def test_is_exist_if_exists(self, receipt):
+        result = receipt_repository.is_exist(receipt.fiscal_drive_number, receipt.fiscal_document_number,
+                                             receipt.fiscal_sign)
+        assert result
+
 
 class TestReceiptItemRepository:
 
@@ -168,4 +177,3 @@ class TestReceiptItemRepository:
     def test_is_exist_by_product_id_and_buyer_id_if_not_exists(self, user, product, old_receipt_item):
         result = receipt_item_repository.is_exist_by_product_id_and_buyer_id(product.id, user.id)
         assert not result
-

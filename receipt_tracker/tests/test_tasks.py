@@ -54,13 +54,20 @@ def successful_receipt_retriever(mocker, parsed_receipt):
     return mock
 
 
+def test_add_receipt_if_receipt_already_exists(mocker, receipt_params):
+    mocker.patch.object(receipt_repository, 'is_exist', return_value=True)
+    add_receipt(1, receipt_params)
+
+
 def test_add_receipt_if_retriever_failed(mocker, receipt_params, failed_receipt_retriever):
+    mocker.patch.object(receipt_repository, 'is_exist', return_value=False)
     mock = mocker.patch.object(add_receipt, 'retry')
     add_receipt(1, receipt_params)
     assert mock.called
 
 
 def test_add_receipt_if_retriever_silent(mocker, receipt_params, silent_receipt_retriever):
+    mocker.patch.object(receipt_repository, 'is_exist', return_value=False)
     mock = mocker.patch.object(add_receipt, 'retry')
     add_receipt(1, receipt_params)
     assert mock.called
@@ -68,6 +75,7 @@ def test_add_receipt_if_retriever_silent(mocker, receipt_params, silent_receipt_
 
 def test_add_receipt_if_retriever_successful(mocker, receipt_params, successful_receipt_retriever,
                                              parsed_receipt, user):
+    mocker.patch.object(receipt_repository, 'is_exist', return_value=False)
     add_receipt(user.id, receipt_params)
 
     receipts = receipt_repository.get_by_buyer_id(user.id)
