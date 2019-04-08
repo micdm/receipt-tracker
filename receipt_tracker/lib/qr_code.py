@@ -16,7 +16,7 @@ def decode(text: str) -> Optional[ReceiptParams]:
             _get_field(parts, 'fn', str, str.isdigit),
             _get_field(parts, 'i', str, str.isdigit),
             _get_field(parts, 'fp', str, str.isdigit),
-            _get_field(parts, 't', lambda value: datetime.strptime(value, '%Y%m%dT%H%M%S')),
+            _get_field(parts, 't', lambda value: datetime.strptime(value, '%Y%m%dT%H%M')),
             _get_field(parts, 's', Decimal),
         )
     except Exception as e:

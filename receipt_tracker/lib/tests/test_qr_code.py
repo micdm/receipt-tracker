@@ -5,7 +5,7 @@ from receipt_tracker.lib.qr_code import decode
 
 
 def test_decode():
-    result = decode('t=20170615T141100&s=67.20&fn=8710000100036875&i=78337&fp=255743793&n=1')
+    result = decode('t=20170615T1411&s=67.20&fn=8710000100036875&i=78337&fp=255743793&n=1')
     assert result.fiscal_drive_number == '8710000100036875'
     assert result.fiscal_document_number == '78337'
     assert result.fiscal_sign == '255743793'

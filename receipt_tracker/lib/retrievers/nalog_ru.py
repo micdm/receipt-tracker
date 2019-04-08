@@ -35,11 +35,13 @@ class NalogRuReceiptRetriever(ReceiptRetriever):
 
     def _check_if_receipt_exists(self, params: ReceiptParams):
         logger.debug('Checking if receipt exists')
-        response = self._make_request(
-            f'https://proverkacheka.nalog.ru:9999/v1/ofds/*/inns/*/fss/{params.fiscal_document_number}/operations'
-            f'/1/tickets/{params.fiscal_drive_number}?fiscalSign={params.fiscal_sign}'
-            f'&date={params.created.strftime("%Y-%m-%dT%H:%M:%S")}&sum={params.amount * 100}'
+        url = (
+            f'https://proverkacheka.nalog.ru:9999/v1/ofds/*/inns/*/fss/{params.fiscal_drive_number}/operations'
+            f'/1/tickets/{params.fiscal_document_number}?fiscalSign={params.fiscal_sign}'
+            f'&date={params.created.strftime("%Y-%m-%dT%H:%M:%S")}&sum={(params.amount * 100).quantize(Decimal(1))}'
         )
+        logger.debug('Downloading receipt from %s', url)
+        response = self._make_request(url)
 
         if response.status_code != HTTPStatus.NO_CONTENT:
             raise BadResponse(f'cannot check receipt, server response was {response.status_code} ({response.text})')
@@ -48,10 +50,12 @@ class NalogRuReceiptRetriever(ReceiptRetriever):
 
     def _get_receipt(self, params: ReceiptParams, try_number: int = 1) -> Optional[ParsedReceipt]:
         logger.debug('Retrieving receipt JSON')
-        response = self._make_request(
+        url = (
             f'https://proverkacheka.nalog.ru:9999/v1/inns/*/kkts/*/fss/{params.fiscal_drive_number}/tickets'
-            f'/{params.fiscal_document_number}?fiscalSign={params.fiscal_sign}&sendToEmail=no',
+            f'/{params.fiscal_document_number}?fiscalSign={params.fiscal_sign}&sendToEmail=no'
         )
+        logger.debug('Downloading receipt from %s', url)
+        response = self._make_request(url)
 
         if response.status_code == HTTPStatus.ACCEPTED:
             if try_number == self.MAX_TRIES:

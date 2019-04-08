@@ -49,3 +49,14 @@ def get_receipt_retriever() -> ReceiptRetriever:
         TaxcomOperatorReceiptRetriever(),
         NalogRuReceiptRetriever(),
     ])
+
+
+def get_available_receipt_retrievers() -> List[ReceiptRetriever]:
+    from receipt_tracker.lib.retrievers.nalog_ru import NalogRuReceiptRetriever
+    from receipt_tracker.lib.retrievers.platforma_ofd import PlatformaOfdOperatorReceiptRetriever
+    from receipt_tracker.lib.retrievers.taxcom import TaxcomOperatorReceiptRetriever
+    return [
+        NalogRuReceiptRetriever(),
+        PlatformaOfdOperatorReceiptRetriever(),
+        TaxcomOperatorReceiptRetriever(),
+    ]
