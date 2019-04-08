@@ -53,7 +53,7 @@ def add_receipt_view(request):
                                              params.fiscal_sign):
                 form.add_error(None, 'Чек уже добавлен')
             else:
-                add_receipt.delay(request.user.id, receipt_params_to_dict(params))
+                add_receipt.apply(args=(request.user.id, receipt_params_to_dict(params)))
                 return HttpResponseRedirect(reverse('receipt-added'))
     else:
         form = forms.QrForm()

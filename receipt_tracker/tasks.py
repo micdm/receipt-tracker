@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 from logging import getLogger
-from typing import Dict, Optional, Union
+from typing import Dict, Union
 
 from django.db.transaction import atomic
 
@@ -42,23 +42,25 @@ def add_receipt(task, user_id: int, raw_params: ReceiptParamsDict):
     if receipt_repository.is_exist(params.fiscal_drive_number, params.fiscal_document_number, params.fiscal_sign):
         logger.info('Receipt %s already exists', params)
         return
+
     logger.info('Adding receipt by params %s for user %s', params, user_id)
-    parsed_receipt = _retrieve_receipt(params)
-    if parsed_receipt:
-        logger.info('Receipt retrieved, storing to database')
-        _store_to_db(user_id, parsed_receipt)
-    else:
+    if not _retrieve_receipt(user_id, params):
         logger.info('Receipt not retrieved, rescheduling task')
         task.retry(countdown=timedelta(hours=1).total_seconds())
 
 
-def _retrieve_receipt(params: ReceiptParams) -> Optional[ParsedReceipt]:
+def _retrieve_receipt(user_id: int, params: ReceiptParams) -> bool:
     try:
-        receipt_retriever = get_receipt_retriever()
-        return receipt_retriever.get_receipt(params)
+        parsed_receipt = get_receipt_retriever().get_receipt(params)
+        if not parsed_receipt:
+            logger.info('Retriever returned no receipt')
+            return False
+        logger.info('Receipt retrieved, storing to database')
+        _store_to_db(user_id, parsed_receipt)
+        return True
     except Exception as e:
         logger.warning('Cannot retrieve receipt: %s', e)
-        return None
+    return False
 
 
 @atomic
@@ -66,6 +68,7 @@ def _store_to_db(user_id: int, parsed_receipt: ParsedReceipt):
     seller = seller_repository.get_or_create(parsed_receipt.seller_individual_number, parsed_receipt.seller_name)
     receipt = receipt_repository.create(seller.id, user_id, parsed_receipt.created, parsed_receipt.fiscal_drive_number,
                                         parsed_receipt.fiscal_document_number, parsed_receipt.fiscal_sign)
+
     for parsed_receipt_item in parsed_receipt.items:
         product_alias = product_alias_repository.get_by_seller_and_name(seller.id, parsed_receipt_item.name)
         if not product_alias:
@@ -73,7 +76,9 @@ def _store_to_db(user_id: int, parsed_receipt: ParsedReceipt):
             product = product_repository.create()
             product_alias = product_alias_repository.create(seller.id, product.id, parsed_receipt_item.name)
             logger.info('Product %s and product alias %s created', product, product_alias)
+
         receipt_item = receipt_item_repository.create(receipt.id, product_alias.id, parsed_receipt_item.price,
                                                       parsed_receipt_item.quantity, parsed_receipt_item.total)
         logger.debug('Receipt item %s created', receipt_item)
+
     logger.info('Receipt %s created', receipt)
