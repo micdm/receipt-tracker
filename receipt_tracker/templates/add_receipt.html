@@ -5,7 +5,6 @@
 {% block body %}
 <h2>Добавить расшифрованный QR-код:</h2>
 <form action="{% url 'add-receipt' %}" method="post">
-    {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Добавить" class="btn btn-primary"/>
 </form>

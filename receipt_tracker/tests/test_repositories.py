@@ -6,9 +6,20 @@ from pytest import fixture
 
 from receipt_tracker.models import Product, Receipt, ReceiptItem, User
 from receipt_tracker.repositories import product_alias_repository, product_repository, receipt_item_repository, \
-    receipt_repository, seller_repository
+    receipt_repository, seller_repository, user_repository
 
 pytestmark = pytest.mark.django_db
+
+
+class TestUserRepository:
+
+    def test_get_by_name_if_not_exist(self):
+        result = user_repository.get_by_name('foo')
+        assert result is None
+
+    def test_get_by_name(self, user):
+        result = user_repository.get_by_name(user.username)
+        assert result.id == user.id
 
 
 class TestSellerRepository:

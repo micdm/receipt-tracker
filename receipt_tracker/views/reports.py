@@ -1,152 +1,16 @@
 from logging import getLogger
 from typing import Dict, Tuple
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.transaction import atomic
-from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.http.response import HttpResponseNotFound
-from django.shortcuts import render, reverse
+from django.shortcuts import render
 
-from receipt_tracker import forms
-from receipt_tracker.lib import qr_code
 from receipt_tracker.models import *
-from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
-from receipt_tracker.tasks import add_receipt, receipt_params_to_dict
+from receipt_tracker.repositories import receipt_item_repository, receipt_repository
+from receipt_tracker.views import add_common_context
 
 logger = getLogger(__name__)
 
 TOP_SIZE = 10
-
-
-def _add_common_context(context: Dict) -> Dict:
-    context.update({
-        'google_analytics_id': settings.GOOGLE_ANALYTICS_ID if not settings.DEBUG else None
-    })
-    return context
-
-
-def index_view(request):
-    receipt_items = receipt_item_repository.get_last()
-    context = {
-        'items': [{
-            'product_id': item.product_alias.product.id,
-            'is_product_checked': item.is_product_checked,
-            'name': item.product_alias.name,
-            'seller': item.receipt.seller.name,
-            'price': item.price
-        } for item in receipt_items]
-    }
-    context = _add_common_context(context)
-    return render(request, 'index.html', context)
-
-
-@login_required
-def add_receipt_view(request):
-    if request.method == 'POST':
-        form = forms.QrForm(request.POST)
-        if form.is_valid():
-            params = qr_code.decode(form.cleaned_data['text'])
-            if not params:
-                form.add_error(None, 'Не удалось разобрать код')
-            elif receipt_repository.is_exist(params.fiscal_drive_number, params.fiscal_document_number,
-                                             params.fiscal_sign):
-                form.add_error(None, 'Чек уже добавлен')
-            else:
-                add_receipt.apply(args=(request.user.id, receipt_params_to_dict(params)))
-                return HttpResponseRedirect(reverse('receipt-added'))
-    else:
-        form = forms.QrForm()
-
-    context = {
-        'form': form,
-    }
-    context = _add_common_context(context)
-    return render(request, 'add_receipt.html', context)
-
-
-def receipt_added_view(request):
-    context = {}
-    context = _add_common_context(context)
-    return render(request, 'receipt_added.html', context)
-
-
-def products_view(request):
-    products = product_repository.get_all()
-    context = {
-        'products': [{
-            'id': product.id,
-            'name': product.name,
-            'is_checked': product.is_checked,
-            'last_buy': product.last_buy,
-            'last_price': product.last_price
-        } for product in products]
-    }
-    context = _add_common_context(context)
-    return render(request, 'products.html', context)
-
-
-def product_view(request, product_id: int):
-    product = product_repository.get_by_id(product_id)
-    if not product:
-        return HttpResponseNotFound()
-
-    is_edit_allowed = receipt_item_repository.is_exist_by_product_id_and_buyer_id(product_id, request.user.id)
-
-    if request.method == 'POST':
-        if not is_edit_allowed:
-            return HttpResponseForbidden()
-        barcode_form = forms.BarcodeForm(request.POST)
-        if barcode_form.is_valid():
-            with atomic():
-                original_product_id = product_repository.set_barcode(product_id, barcode_form.cleaned_data['barcode'])
-            if original_product_id:
-                return HttpResponseRedirect(reverse('product', args=(original_product_id,)))
-            else:
-                barcode_form.add_error(None, 'Штрихкод не найден')
-    else:
-        barcode_form = forms.BarcodeForm(initial={'barcode': product.barcode})
-
-    food_product = product.details
-    context = {
-        'product': {
-            'id': product.id,
-            'name': product.name,
-            'barcode': product.barcode,
-            'is_food': product.is_food,
-            'is_non_food': product.is_non_food,
-            'aliases': [{
-                'id': alias.id,
-                'seller': alias.seller.name,
-                'name': alias.name,
-            } for alias in product.aliases],
-            'prices': [{
-                'seller': item.receipt.seller.name,
-                'created': item.receipt.created,
-                'value': item.price,
-            } for item in receipt_item_repository.get_by_product_id(product_id)],
-            'food': {
-                'calories': food_product.calories / 1000,
-                'protein': food_product.protein,
-                'fat': food_product.fat,
-                'carbohydrate': food_product.carbohydrate,
-                'weight': food_product.weight / 1000,
-                'total': {
-                    'calories': food_product.total_calories / 1000,
-                    'protein': food_product.total_protein,
-                    'fat': food_product.total_fat,
-                    'carbohydrate': food_product.total_carbohydrate
-                }
-            } if food_product else None
-        },
-        'edit': {
-            'is_allowed': is_edit_allowed,
-            'barcode_form': barcode_form
-        }
-    }
-    context = _add_common_context(context)
-
-    return render(request, 'product.html', context)
 
 
 @login_required
@@ -164,7 +28,7 @@ def value_report_view(request):
         'food_should_be': _get_food_should_be(receipts),
         'non_checked_count': sum(receipt.non_checked_product_count for receipt in receipts)
     }
-    context = _add_common_context(context)
+    context = add_common_context(context)
 
     return render(request, 'reports/value.html', context)
 
@@ -215,7 +79,7 @@ def top_report_view(request):
         ('top_by_carbohydrate', _get_top_by_carbohydrate),
         ('top_by_effectivity', _get_top_by_effectivity),
     )}
-    context = _add_common_context(context)
+    context = add_common_context(context)
 
     return render(request, 'reports/top.html', context)
 
@@ -377,7 +241,7 @@ def summary_report_view(request):
             'total': stats.total
         } for product, stats in products]
     }
-    context = _add_common_context(context)
+    context = add_common_context(context)
 
     return render(request, 'reports/summary.html', context)
 

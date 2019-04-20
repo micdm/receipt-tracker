@@ -2,7 +2,13 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List, Optional
 
-from receipt_tracker.models import NonFoodProduct, Product, ProductAlias, Receipt, ReceiptItem, Seller
+from receipt_tracker.models import NonFoodProduct, Product, ProductAlias, Receipt, ReceiptItem, Seller, User
+
+
+class UserRepository:
+
+    def get_by_name(self, name: str) -> Optional[User]:
+        return User.objects.filter(username=name).first()
 
 
 class SellerRepository:
@@ -96,6 +102,7 @@ class ReceiptItemRepository:
         return ReceiptItem.objects.filter(product_alias__product=product_id, receipt__buyer=buyer_id).exists()
 
 
+user_repository = UserRepository()
 seller_repository = SellerRepository()
 product_repository = ProductRepository()
 product_alias_repository = ProductAliasRepository()
