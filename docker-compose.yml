@@ -19,12 +19,9 @@ services:
       context: .
       target: prod
     image: receipt-tracker
-    ports:
-      - 8000:8000
     volumes:
-      - static:/opt/receipt-tracker/static
+      - static:/opt/static
       - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
-    command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     env_file:
       - .env
     depends_on:
@@ -44,6 +41,16 @@ services:
     depends_on:
       - db
       - message-broker
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+    volumes:
+      - static:/opt/s
+      - ./conf/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
 
 volumes:
   db:

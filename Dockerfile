@@ -25,7 +25,7 @@ WORKDIR /opt/receipt-tracker
 COPY --from=base /usr/ /usr/
 COPY --from=base /opt/receipt-tracker/ /opt/receipt-tracker/
 
-CMD gunicorn -b 0.0.0.0:80 receipt_tracker/wsgi.py
+CMD gunicorn -b 0.0.0.0:80 receipt_tracker.wsgi:application
 
 # Dev
 FROM python:3.7-alpine AS dev
