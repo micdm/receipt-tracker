@@ -2,4 +2,9 @@
 или сколько денег в месяц уходит на водку; или в каком магазине города выгодней купить молоко. Больше чеков — шире выборка!  
 Подробнее см. [в заметках][blog-post].
 
+## Тесты
+```bash
+docker-compose -f docker-compose.dev.yml up tests
+```
+
 [blog-post]: http://blog.demerzov.ru/archives/460
