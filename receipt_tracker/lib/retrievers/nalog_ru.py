@@ -17,7 +17,7 @@ logger = getLogger(__name__)
 
 class NalogRuReceiptRetriever(ReceiptRetriever):
 
-    MAX_TRIES = 5
+    MAX_TRIES = 3
     RETRY_DELAY = timedelta(seconds=5)
 
     def get_receipt(self, params: ReceiptParams) -> Optional[ParsedReceipt]:

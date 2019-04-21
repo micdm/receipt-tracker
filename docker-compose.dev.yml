@@ -4,46 +4,8 @@ services:
 
   db:
     image: postgres:alpine
-    volumes:
-      - db:/var/lib/postgresql/data
     env_file:
       - .env
-
-  message-broker:
-    image: rabbitmq:alpine
-    volumes:
-      - messages:/var/lib/rabbitmq
-
-  backend:
-    build:
-      context: .
-      target: prod
-    image: receipt-tracker
-    ports:
-      - 8000:8000
-    volumes:
-      - static:/opt/receipt-tracker/static
-      - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
-    command: ["./manage.py", "runserver", "0.0.0.0:8000"]
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - message-queue
-
-  message-queue:
-    build:
-      context: .
-      target: prod
-    image: receipt-tracker
-    volumes:
-      - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
-    command: ["celery", "-A", "receipt_tracker.celery", "worker"]
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - message-broker
 
   tests:
     build:
@@ -56,8 +18,3 @@ services:
       - .env
     depends_on:
       - db
-
-volumes:
-  db:
-  messages:
-  static:
