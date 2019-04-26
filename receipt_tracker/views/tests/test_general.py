@@ -85,6 +85,13 @@ class TestProductView:
         response = guest_client.get(reverse('product', args=(product.id,)))
         assert response.status_code == HTTPStatus.OK
 
+    def test_if_get_and_non_food_product_found(self, mocker, guest_client, product, non_food_product, receipt_item):
+        mocker.patch.object(product_repository, 'get_by_id', return_value=product)
+        mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=False)
+        mocker.patch.object(receipt_item_repository, 'get_by_product_id', return_value=[receipt_item])
+        response = guest_client.get(reverse('product', args=(product.id,)))
+        assert response.status_code == HTTPStatus.OK
+
     def test_if_post_and_edit_not_allowed(self, mocker, guest_client, product):
         mocker.patch.object(product_repository, 'get_by_id', return_value=product)
         mocker.patch.object(receipt_item_repository, 'is_exist_by_product_id_and_buyer_id', return_value=False)

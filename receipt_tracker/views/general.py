@@ -98,7 +98,7 @@ def product_view(request, product_id: int):
     else:
         barcode_form = forms.BarcodeForm(initial={'barcode': product.barcode})
 
-    food_product = product.details
+    details = product.details
     context = {
         'product': {
             'id': product.id,
@@ -117,18 +117,18 @@ def product_view(request, product_id: int):
                 'value': item.price,
             } for item in receipt_item_repository.get_by_product_id(product_id)],
             'food': {
-                'calories': food_product.calories / 1000,
-                'protein': food_product.protein,
-                'fat': food_product.fat,
-                'carbohydrate': food_product.carbohydrate,
-                'weight': food_product.weight / 1000,
+                'calories': details.calories / 1000,
+                'protein': details.protein,
+                'fat': details.fat,
+                'carbohydrate': details.carbohydrate,
+                'weight': details.weight / 1000,
                 'total': {
-                    'calories': food_product.total_calories / 1000,
-                    'protein': food_product.total_protein,
-                    'fat': food_product.total_fat,
-                    'carbohydrate': food_product.total_carbohydrate
+                    'calories': details.total_calories / 1000,
+                    'protein': details.total_protein,
+                    'fat': details.total_fat,
+                    'carbohydrate': details.total_carbohydrate
                 }
-            } if food_product else None
+            } if product.is_food else None
         },
         'edit': {
             'is_allowed': is_edit_allowed,
