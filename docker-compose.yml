@@ -21,6 +21,7 @@ services:
     image: receipt-tracker
     volumes:
       - static:/opt/static
+      - ./conf/gunicorn.conf:/etc/gunicorn.conf
       - ./receipt_tracker:/opt/receipt-tracker/receipt_tracker
     env_file:
       - .env

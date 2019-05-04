@@ -25,7 +25,7 @@ WORKDIR /opt/receipt-tracker
 COPY --from=base /usr/ /usr/
 COPY --from=base /opt/receipt-tracker/ /opt/receipt-tracker/
 
-CMD gunicorn -b 0.0.0.0:80 receipt_tracker.wsgi:application
+CMD ["gunicorn", "-c", "/etc/gunicorn.conf", "receipt_tracker.wsgi:application"]
 
 # Dev
 FROM python:3.7-alpine AS dev
@@ -40,4 +40,4 @@ COPY setup.cfg /opt/receipt-tracker/
 
 RUN pip install -r requirements-dev.txt
 
-CMD pytest --cov
+CMD ["pytest", "--cov"]
