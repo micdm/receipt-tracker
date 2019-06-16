@@ -12,6 +12,7 @@ requests = "*"
 lxml = "*"
 celery = "*"
 django-celery-results = "*"
+sklearn = "*"
 
 [dev-packages]
 mixer = "*"

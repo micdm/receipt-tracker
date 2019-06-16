@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from receipt_tracker import forms, tasks
 from receipt_tracker.lib import qr_code
+from receipt_tracker.lib.similar import SimilarProductFinder
 from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
 from receipt_tracker.tasks import receipt_params_to_dict
 from receipt_tracker.views import add_common_context
@@ -128,7 +129,12 @@ def product_view(request, product_id: int):
                     'fat': details.total_fat,
                     'carbohydrate': details.total_carbohydrate
                 }
-            } if product.is_food else None
+            } if product.is_food else None,
+            'similars': [{
+                'id': similar.product.id,
+                'name': similar.product.name,
+                'confidence': similar.confidence,
+            } for similar in SimilarProductFinder(list(product_repository.get_all())).find(product.name)]
         },
         'edit': {
             'is_allowed': is_edit_allowed,

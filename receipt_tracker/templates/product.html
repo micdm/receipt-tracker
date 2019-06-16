@@ -28,6 +28,7 @@
         </ul>
     {% endwith %}
 {% endif %}
+
 <h4 class="block">Известен как</h4>
 <table class="table table-striped">
     {% for alias in product.aliases %}
@@ -37,6 +38,19 @@
         </tr>
     {% endfor %}
 </table>
+
+{% if product.similars %}
+    <h4 class="block">Похожие продукты</h4>
+    <table class="table table-striped">
+        {% for similar in product.similars %}
+            <tr>
+                <td><a href="{% url 'product' similar.id %}">{{ similar.name }}</a></td>
+                <td class="text-right">{{ similar.confidence }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
 <h4 class="block">История цен</h4>
 <table class="table table-striped">
     {% for price in product.prices %}
@@ -47,6 +61,7 @@
         </tr>
     {% endfor %}
 </table>
+
 {% if edit.is_allowed %}
     <h4 class="block">Редактирование</h4>
     <form action="{% url 'product' product.id %}" method="post">
