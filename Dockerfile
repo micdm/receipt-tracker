@@ -15,26 +15,19 @@ COPY manage.py /opt/receipt-tracker/
 COPY receipt_tracker /opt/receipt-tracker/receipt_tracker
 
 # Prod
-FROM python:3.7 AS prod
+FROM base AS prod
 
 WORKDIR /opt/receipt-tracker
-
-COPY --from=base /usr/ /usr/
-COPY --from=base /opt/receipt-tracker/ /opt/receipt-tracker/
 
 CMD ["gunicorn", "-c", "/etc/gunicorn.conf", "receipt_tracker.wsgi:application"]
 
 # Dev
-FROM python:3.7 AS dev
+FROM base AS dev
 
 WORKDIR /opt/receipt-tracker
 
-COPY --from=base /usr/ /usr/
-COPY --from=base /opt/receipt-tracker/ /opt/receipt-tracker/
-COPY --from=base /opt/receipt-tracker-build/requirements-dev.txt /opt/receipt-tracker/
+RUN pip install -r /opt/receipt-tracker-build/requirements-dev.txt
 
 COPY setup.cfg /opt/receipt-tracker/
-
-RUN pip install -r requirements-dev.txt
 
 CMD ["pytest", "--cov"]
