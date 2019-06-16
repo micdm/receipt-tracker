@@ -1,24 +1,21 @@
-FROM python:3.7-alpine AS base
+FROM python:3.7 AS base
 
 WORKDIR /opt/receipt-tracker-build
 
 COPY Pipfile Pipfile.lock /opt/receipt-tracker-build/
 
-RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev python3-dev libxml2-dev && \
-    apk add --no-cache postgresql-libs libxslt-dev && \
-    pip install pipenv && \
+RUN pip install pipenv && \
     pipenv lock -r > requirements.txt 2>/dev/null && \
     pipenv lock -r --dev > requirements-dev.txt 2>/dev/null && \
     pip install -r requirements.txt && \
     pipenv --rm && \
-    pip uninstall -y pipenv && \
-    apk del --no-cache .build-deps
+    pip uninstall -y pipenv
 
 COPY manage.py /opt/receipt-tracker/
 COPY receipt_tracker /opt/receipt-tracker/receipt_tracker
 
 # Prod
-FROM python:3.7-alpine AS prod
+FROM python:3.7 AS prod
 
 WORKDIR /opt/receipt-tracker
 
@@ -28,7 +25,7 @@ COPY --from=base /opt/receipt-tracker/ /opt/receipt-tracker/
 CMD ["gunicorn", "-c", "/etc/gunicorn.conf", "receipt_tracker.wsgi:application"]
 
 # Dev
-FROM python:3.7-alpine AS dev
+FROM python:3.7 AS dev
 
 WORKDIR /opt/receipt-tracker
 
