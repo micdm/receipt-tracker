@@ -48,6 +48,21 @@ class ProductRepository:
         NonFoodProduct.objects.create(product=product)
         return True
 
+    def merge(self, product_id: int, another_product_id: int):
+        product = self.get_by_id(product_id)
+        another_product = self.get_by_id(another_product_id)
+
+        if product.copy_from(another_product):
+            product.save()
+
+        details = another_product.details
+        if product.details is None and details is not None:
+            details.product = product
+            details.save()
+
+        ProductAlias.objects.filter(product=another_product).update(product=product)
+        another_product.delete()
+
 
 class ProductAliasRepository:
 

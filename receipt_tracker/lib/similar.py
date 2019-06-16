@@ -24,7 +24,7 @@ class SimilarProduct:
 class SimilarProductFinder:
 
     MIN_CONFIDENCE = 0.3
-    RESULT_COUNT = 5
+    RESULT_COUNT = 10
 
     def __init__(self, products: Sequence[Product]):
         self._products = products

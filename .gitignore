@@ -1,5 +1,5 @@
 __pycache__
 .idea/
-.coverage
+.coverage*
 *,cover
 .env

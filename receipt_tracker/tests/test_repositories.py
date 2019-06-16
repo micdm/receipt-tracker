@@ -4,7 +4,7 @@ from decimal import Decimal
 import pytest
 from pytest import fixture
 
-from receipt_tracker.models import Product, Receipt, ReceiptItem, User
+from receipt_tracker.models import FoodProduct, Product, Receipt, ReceiptItem, User
 from receipt_tracker.repositories import product_alias_repository, product_repository, receipt_item_repository, \
     receipt_repository, seller_repository, user_repository
 
@@ -38,7 +38,11 @@ class TestProductRepository:
 
     @fixture
     def another_product(self, mixer):
-        return mixer.blend(Product)
+        return mixer.blend(Product, user_friendly_name='foo', barcode='123')
+
+    @fixture
+    def another_food_product(self, mixer, another_product):
+        return mixer.blend(FoodProduct, product=another_product)
 
     def test_create(self):
         result = product_repository.create()
@@ -79,6 +83,19 @@ class TestProductRepository:
 
         product.refresh_from_db()
         assert product.is_non_food
+
+    def test_merge_if_details_copied(self, product, another_product, another_food_product):
+        product_repository.merge(product.id, another_product.id)
+
+        product.refresh_from_db()
+        assert product.user_friendly_name == another_product.user_friendly_name
+        assert product.barcode == another_product.barcode
+
+        another_food_product.refresh_from_db()
+        assert another_food_product.product.id == product.id
+
+    def test_merge_if_no_details(self, product, another_product):
+        product_repository.merge(product.id, another_product.id)
 
 
 class TestProductAliasRepository:

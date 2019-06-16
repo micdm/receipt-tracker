@@ -17,6 +17,10 @@ from receipt_tracker.views import add_common_context
 logger = getLogger(__name__)
 
 
+def is_edit_allowed(product_id: int, user_id: int) -> bool:
+    return receipt_item_repository.is_exist_by_product_id_and_buyer_id(product_id, user_id)
+
+
 def index_view(request):
     receipt_items = receipt_item_repository.get_last()
     context = {
@@ -83,10 +87,10 @@ def product_view(request, product_id: int):
     if not product:
         return HttpResponseNotFound()
 
-    is_edit_allowed = receipt_item_repository.is_exist_by_product_id_and_buyer_id(product_id, request.user.id)
+    edit_allowed = is_edit_allowed(product_id, request.user.id)
 
     if request.method == 'POST':
-        if not is_edit_allowed:
+        if not edit_allowed:
             return HttpResponseForbidden()
         barcode_form = forms.BarcodeForm(request.POST)
         if barcode_form.is_valid():
@@ -137,10 +141,23 @@ def product_view(request, product_id: int):
             } for similar in SimilarProductFinder(list(product_repository.get_all())).find(product.name)]
         },
         'edit': {
-            'is_allowed': is_edit_allowed,
+            'is_allowed': edit_allowed,
             'barcode_form': barcode_form
         }
     }
     context = add_common_context(context)
 
     return render(request, 'product.html', context)
+
+
+def merge_product_view(request, product_id: int, another_product_id: int):
+    if not is_edit_allowed(product_id, request.user.id):
+        return HttpResponseForbidden()
+
+    if not is_edit_allowed(another_product_id, request.user.id):
+        return HttpResponseForbidden()
+
+    with atomic():
+        product_repository.merge(product_id, another_product_id)
+
+    return HttpResponseRedirect(reverse('product', args=(product_id,)))

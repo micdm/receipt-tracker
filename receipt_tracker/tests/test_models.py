@@ -1,4 +1,5 @@
 import pytest
+from pytest import fixture
 
 from receipt_tracker.models import Product, ReceiptItem
 
@@ -23,6 +24,10 @@ class TestSeller:
 
 
 class TestProduct:
+
+    @fixture
+    def another_product(self, mixer):
+        return mixer.blend(Product, user_fiendly_name='foo', barcode='123')
 
     def test_str(self, product):
         result = str(product)
@@ -49,6 +54,17 @@ class TestProduct:
     def test_details_if_unknown(self, product):
         result = product.details
         assert result is None
+
+    def test_copy_from_if_copied(self, product, another_product):
+        result = product.copy_from(another_product)
+        assert result
+
+        assert product.user_friendly_name == another_product.user_friendly_name
+        assert product.barcode == another_product.barcode
+
+    def test_copy_from_if_not_copied(self, product):
+        result = product.copy_from(product)
+        assert not result
 
 
 class TestFoodProduct:

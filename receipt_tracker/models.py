@@ -73,6 +73,16 @@ class Product(models.Model):
     def last_price(self) -> Decimal:
         return ReceiptItem.objects.filter(product_alias__product=self).order_by('-receipt__created')[0].price
 
+    def copy_from(self, product: 'Product') -> bool:
+        changed = False
+        for key in ('user_friendly_name', 'barcode'):
+            if getattr(self, key) is None:
+                value = getattr(product, key)
+                if value is not None:
+                    setattr(self, key, value)
+                    changed = True
+        return changed
+
 
 class FoodProduct(models.Model):
 

@@ -9,6 +9,7 @@ from pytest import fixture
 from receipt_tracker import tasks
 from receipt_tracker.lib import ReceiptParams, qr_code
 from receipt_tracker.repositories import product_repository, receipt_item_repository, receipt_repository
+from receipt_tracker.views import general
 
 pytestmark = pytest.mark.django_db
 
@@ -117,4 +118,23 @@ class TestProductView:
         response = authorized_client.post(reverse('product', args=(product.id,)), {
             'barcode': product_with_barcode.barcode,
         })
+        assert response.status_code == HTTPStatus.FOUND
+
+
+class TestMergeProductView:
+
+    def test_if_product_edit_not_allowed(self, mocker, guest_client):
+        mocker.patch.object(general, 'is_edit_allowed', return_value=False)
+        response = guest_client.get(reverse('merge-product', args=(1, 2)))
+        assert response.status_code == HTTPStatus.FORBIDDEN
+
+    def test_if_another_product_edit_not_allowed(self, mocker, guest_client):
+        mocker.patch.object(general, 'is_edit_allowed', side_effect=(True, False))
+        response = guest_client.get(reverse('merge-product', args=(1, 2)))
+        assert response.status_code == HTTPStatus.FORBIDDEN
+
+    def test(self, mocker, guest_client):
+        mocker.patch.object(general, 'is_edit_allowed', return_value=True)
+        mocker.patch.object(product_repository, 'merge')
+        response = guest_client.get(reverse('merge-product', args=(1, 2)))
         assert response.status_code == HTTPStatus.FOUND

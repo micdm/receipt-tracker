@@ -45,7 +45,13 @@
         {% for similar in product.similars %}
             <tr>
                 <td><a href="{% url 'product' similar.id %}">{{ similar.name }}</a></td>
-                <td class="text-right">{{ similar.confidence }}</td>
+                {% if edit.is_allowed %}
+                    <td class="text-right">
+                        <form action="{% url 'merge-product' product.id similar.id %}">
+                            <input type="submit" value="Объединить">
+                        </form>
+                    </td>
+                {% endif %}
             </tr>
         {% endfor %}
     </table>
