@@ -21,11 +21,7 @@
                 <a href="{% url 'products' %}">Все продукты</a>
             </h4>
         </div>
-        {% if user.is_anonymous %}
-            <div class="col-md-8 text-right">
-                <a href="{% url 'social:begin' 'vk-oauth2' %}" class="btn btn-primary">Войти через VK</a>
-            </div>
-        {% else %}
+        {% if not user.is_anonymous %}
             <div class="col-md-4">
                 <a href="{% url 'value-report' %}" class="btn btn-link">Пищевая ценность</a>
                 <a href="{% url 'top-report' %}" class="btn btn-link">Топ</a>

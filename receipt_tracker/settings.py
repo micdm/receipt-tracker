@@ -21,8 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_results',
-    'social_django',
-    'receipt_tracker'
+    'receipt_tracker',
 ]
 
 MIDDLEWARE = [
@@ -36,7 +35,6 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.vk.VKOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -53,8 +51,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',
-                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -100,10 +96,6 @@ CHECKER_LOGIN = env.str('CHECKER_LOGIN')
 CHECKER_PASSWORD = env.str('CHECKER_PASSWORD')
 CHECKER_DEVICE_ID = env.str('CHECKER_DEVICE_ID')
 CHECKER_DEVICE_OS = env.str('CHECKER_DEVICE_OS')
-
-SOCIAL_AUTH_VK_OAUTH2_KEY = env.str('SOCIAL_AUTH_VK_OAUTH2_KEY')
-SOCIAL_AUTH_VK_OAUTH2_SECRET = env.str('SOCIAL_AUTH_VK_OAUTH2_SECRET')
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 
 FILE_UPLOAD_HANDLERS = (
     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
